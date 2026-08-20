@@ -1,0 +1,43 @@
+# shellrc_common — sourced by both bashrc_thin and zshrc_thin.
+# Plain POSIX-ish syntax only (export/alias/if [[ ]]/command -v): this file
+# must parse identically under bash and zsh, so nothing shell-specific
+# (PS1 escapes, setopt/shopt) belongs here — see bashrc_thin/zshrc_thin.
+
+export PATH="$HOME/.local/bin:$PATH"
+
+# ls/ll: colorized, ll always shows hidden files with human-readable sizes,
+# regardless of which of these three cases applies.
+if command -v gls >/dev/null 2>&1 && command -v gdircolors >/dev/null 2>&1; then
+    # GNU coreutils via Homebrew (macOS)
+    if [[ -r "$HOME/.dircolors" ]]; then
+        eval "$(gdircolors -b "$HOME/.dircolors")"
+    else
+        eval "$(gdircolors -b)"
+    fi
+    alias ls='gls --color=auto'
+    alias ll='gls --color=auto -lAh'
+elif command -v dircolors >/dev/null 2>&1; then
+    # Native GNU coreutils (Linux)
+    if [[ -r "$HOME/.dircolors" ]]; then
+        eval "$(dircolors -b "$HOME/.dircolors")"
+    else
+        eval "$(dircolors -b)"
+    fi
+    alias ls='ls --color=auto'
+    alias ll='ls --color=auto -lAh'
+else
+    # BSD ls fallback (macOS without Homebrew coreutils)
+    export CLICOLOR=1
+    export LSCOLORS='Exfxcxdxbxegedabagacad'
+    alias ls='ls -G'
+    alias ll='ls -lAhG'
+fi
+
+export HISTSIZE=100000
+
+# nvm: this snippet is shell-agnostic (plain POSIX test + dot-sourcing), so
+# it's safe here rather than duplicated in both thin files. No-op if nvm
+# isn't installed on this machine.
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
