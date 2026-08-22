@@ -16,16 +16,25 @@ setting; this script is just what's plugged into it.
 Three lines:
 
 ```
-🤖 Sonnet 5 (high)    📂 /Users/jeanlescut/secondbrain/03_tools/notify    🌿 main (+7 -4)
+🤖 Sonnet 5 (high)    🖥️  mac    📂 ~/dev/bootstrap-home    🌿 main (+7 -4)    08/22 22:59:00
 🆔 e6d08010-604b-46dd-b912-7ae2380b382f    🏷️  Claude status bar    ⚙️  53098
 💬 [███░░░░░] 44%    5h [░░░░░░░░] 3%    7d [░░░░░░░░] 10%    💾 15.0G/16.0G
 ```
 
 | Line | Content | Color scheme |
 |------|---------|---------------|
-| 1 | 🤖 model + effort · 📂 cwd · 🌿 git branch+diffstat (only inside a repo) | Grayscale, brightness = importance (model brightest, git dimmest) |
+| 1 | 🤖 model + effort · 🖥️ short hostname · 📂 cwd · 🌿 git branch+diffstat (only inside a repo) · datetime | Grayscale, brightness = importance (model brightest, datetime dimmest) — **except hostname**, which deliberately breaks the grayscale pattern (see below) |
 | 2 | 🆔 session UUID (**leftmost**, deliberately — this is the field you need if the terminal crashes and you have to find the transcript/session again) · 🏷️ session title (only if renamed via `/rename`) · ⚙️ shell PID | Grayscale, dimmer = less important (UUID/PID are rarely-read technical fields) |
 | 3 | 💬 context-window usage · `5h` rate-limit usage (or `Blocked - resets in Xh Ym` past 100%) · `7d` rate-limit usage (same blocked behavior) · 💾 memory used/total | Criticality color (green <70%, yellow <70-90%, red ≥90%), applied to the whole segment (icon + bar fill + percentage), not just the bar |
+
+### Hostname color
+
+The `🖥️ hostname` segment is the one field on line 1 that isn't grayscale — it gets its own color from a 14-shade blue/purple/cyan palette (`HOST_PALETTE` in the script), picked by hashing the short hostname (`hostname -s`) with SHA-256 and reducing mod the palette size. Deliberately **not** a hardcoded hostname→color lookup table: a lookup table leaves every new machine on an undefined color until someone edits the script and redeploys it everywhere, whereas hashing gives any hostname a stable color the moment `bootstrap-home` first deploys there, no maintenance.
+
+Two things worth knowing if this ever needs revisiting:
+- **SHA-256, not `cksum`.** `cksum` is a CRC — fine for error-detection, bad for bucketing: reducing it mod a small number clusters. Verified directly: `"mac"` and `"H-Frank-1"` landed on the exact same bucket under `cksum % 6`.
+- **Palette size matters more than the hash.** The first version used only 6 colors, and even with a good hash (SHA-256), `mac`/`H-Frank-1` still collided — 6 buckets means collisions among just a few machines are expected by birthday-paradox math, not a sign of a bad hash. 14 shades resolves it for these two real machines with some headroom.
+- The palette is deliberately confined to blue/purple/cyan, kept out of the green/yellow/red severity language used on line 3, so it never reads as a status/health signal.
 
 Design history, if you want the reasoning behind a specific choice: originally 4 lines with the UUID alone on the last line; collapsed to 3 by merging UUID+title+PID onto one line and context+usage+memory onto another. Emoji and colors were chosen interactively (candidates presented with live-rendered previews) — swap freely, nothing here is load-bearing except the field names below.
 

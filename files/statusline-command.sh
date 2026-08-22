@@ -18,6 +18,29 @@ GRAY_5='\033[38;5;236m' # darkest gray  - shell pid (least important)
 SEV_GREEN='\033[32m'; SEV_YELLOW='\033[33m'; SEV_RED='\033[31m'
 BAR_EMPTY='\033[38;5;238m' # dim track for the unfilled part of a bar
 
+# --- line 1: host identity, hashed color (deliberately not hardcoded) ---
+# A hostname->color lookup table would leave every new machine on an
+# "undefined" color until someone edits this script and redeploys it
+# everywhere - hashing gives any hostname a stable color the moment this
+# first runs there, no maintenance. SHA-256, not cksum: cksum is a CRC,
+# fine for error-detection but reducing it mod a small bucket count
+# clusters badly (verified: "mac" and "H-Frank-1" landed on the exact
+# same bucket with cksum %6). 14 shades keeps collisions rare across a
+# handful of real machines - kept entirely in the blue/purple/cyan
+# family, deliberately out of the green/yellow/red severity language
+# used on line 3, so it never reads as a status signal.
+HOST_PALETTE=(25 27 33 39 45 51 50 44 57 63 99 129 135 141)
+host_color() {
+  local host="$1" hex dec
+  if command -v sha256sum >/dev/null 2>&1; then
+    hex=$(printf '%s' "$host" | sha256sum | cut -c1-8)
+  else
+    hex=$(printf '%s' "$host" | shasum -a 256 | cut -c1-8)
+  fi
+  dec=$((16#$hex))
+  echo "\033[38;5;${HOST_PALETTE[$(( dec % ${#HOST_PALETTE[@]} ))]}m"
+}
+
 sev_color() {
   local pct=$1
   if [ "$pct" -ge 90 ]; then echo "$SEV_RED"
@@ -87,7 +110,10 @@ fi
 
 DATETIME=$(date '+%m/%d %H:%M:%S')
 
-echo -e "${GRAY_1}🤖 ${MODEL_STR}${RESET}    ${GRAY_2}📂 ${CWD}${RESET}${GIT_SEG}    ${GRAY_4}${DATETIME}${RESET}"
+HOST_SHORT=$(hostname -s)
+HOST_COLOR=$(host_color "$HOST_SHORT")
+
+echo -e "${GRAY_1}🤖 ${MODEL_STR}${RESET}    ${HOST_COLOR}🖥️  ${HOST_SHORT}${RESET}    ${GRAY_2}📂 ${CWD}${RESET}${GIT_SEG}    ${GRAY_4}${DATETIME}${RESET}"
 
 # --- line 2: session UUID (far left, for crash recovery) | session title | shell pid ---
 TITLE_SEG=""
