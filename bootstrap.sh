@@ -29,16 +29,19 @@ fi
 # logic. Real logic (directories, git config, tool installs) lives in
 # modules/ instead - see the bottom of this file.
 #
-# shellrc_common/zshrc_thin/bashrc_thin are NOT in this list - they're
-# never deployed as standalone files. Their content is concatenated
-# directly into the managed block in ~/.zshrc or ~/.bashrc instead (see
-# "shell rc managed block" below), so the split lives only in this repo
-# (one shared file to maintain, per shell logic in the *_thin files)
-# without adding indirection on the target machine.
+# configure_shellrc.sh is NOT in this list - it's a generator script, not
+# static content. Its output is concatenated directly into the managed
+# block in ~/.zshrc or ~/.bashrc instead (see "shell rc managed block"
+# below).
+#
+# statusline-command.md is NOT in this list either - it's reference
+# documentation for statusline-command.sh, not something meant to land
+# in ~/.claude/.
 DOTFILES=(
     "vimrc:$HOME/.vimrc"
     "tmux.conf:$HOME/.tmux.conf"
     "CLAUDE.md:$HOME/.claude/CLAUDE.md"
+    "statusline-command.sh:$HOME/.claude/statusline-command.sh"
 )
 
 _deploy_dotfile() {
