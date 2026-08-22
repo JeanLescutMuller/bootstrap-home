@@ -24,7 +24,11 @@ INSTALL=true bash bootstrap.sh gitconfig   # dotfiles (always checked) + one mod
 - `CLAUDE.md` → `~/.claude/CLAUDE.md`
 - `shellrc_common` → `~/.shellrc_common` — sourced by both bash and zsh (PATH, `ls`/`ll` aliases, `HISTSIZE`, nvm)
 - `zshrc_thin` or `bashrc_thin` (whichever matches `$SHELL`) → `~/.zshrc_bootstrap` / `~/.bashrc_bootstrap` — prompt and history-behavior settings that genuinely differ between the two shells
-- `~/.zshrc` / `~/.bashrc` are never overwritten — a `source` line is appended once if missing, so any existing content on the machine is left alone
+
+**`~/.zshrc` / `~/.bashrc`**: never overwritten wholesale. A single box-delimited, hash-verified block (source lines for the two files above) is managed inside them by `_deploy_managed_block` — removed and reconstructed on every install, everything outside the block is left completely alone. The block:
+- Opens with a visible `DO NOT EDIT` warning — put your own customizations below the block, not inside it.
+- Carries a `sha256:` of its own content in the closing marker. If the block was hand-edited since the last deploy, the hash won't match on the next run: `bootstrap.sh` prints a diff of what changed and **aborts that file** rather than clobbering the edit — nothing else deployed by this project is affected.
+- Uses the exact same box format as `notify`'s tmux-hook injection (`deploy_managed_block` in `notify`'s own script) — kept in sync deliberately, so every project that injects a block into a file it doesn't fully own looks and behaves identically.
 
 **Modules** (`modules/`, real logic only):
 - `dev_layout.sh` — ensures `~/dev`, `~/opt`, `~/.local/bin` exist
