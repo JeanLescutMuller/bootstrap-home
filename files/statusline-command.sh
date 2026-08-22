@@ -9,10 +9,9 @@ RESET='\033[0m'
 
 # --- lines 1-2: grayscale, brightness = importance ---
 GRAY_1='\033[97m'       # bright white  - model+effort (most important)
-GRAY_2='\033[37m'       # white         - cwd, session title
+GRAY_2='\033[37m'       # white         - cwd
 GRAY_3='\033[38;5;250m' # light gray    - git branch/diff
-GRAY_4='\033[38;5;240m' # dark gray     - session uuid (crash-recovery only)
-GRAY_5='\033[38;5;236m' # darkest gray  - shell pid (least important)
+GRAY_4='\033[38;5;240m' # dark gray     - entire line 2 (uuid, pid, rotating info)
 
 # --- line 3: criticality colors (green/yellow/red by severity) ---
 SEV_GREEN='\033[32m'; SEV_YELLOW='\033[33m'; SEV_RED='\033[31m'
@@ -263,7 +262,7 @@ case "$ROTATE_IDX" in
     ;;
 esac
 
-echo -e "${GRAY_4}🆔 ${SESSION_ID}${RESET}    ${GRAY_5}⚙️  ${SHELL_PID}${RESET}    ${GRAY_4}${ROTATE_STR}${RESET}"
+echo -e "${GRAY_4}🆔 ${SESSION_ID}    ⚙️  ${SHELL_PID}    ${ROTATE_STR}${RESET}"
 
 # --- line 3: context bar | 5h rate-limit bar | 7d rate-limit bar | memory - all colored by criticality ---
 BAR_WIDTH=8
