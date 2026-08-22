@@ -1,0 +1,10 @@
+{
+  "respondToBashCommands": false,
+  "theme": "dark",
+  "statusLine": {
+    "type": "command",
+    "command": "bash $HOME/.claude/statusline-command.sh",
+    "padding": 0,
+    "refreshInterval": 10
+  }
+}

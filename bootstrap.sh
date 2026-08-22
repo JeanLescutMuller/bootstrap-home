@@ -170,7 +170,7 @@ case "$(basename "$SHELL")" in
 esac
 
 # --- Modules: real logic (branching, external calls) lives here. ---
-MODULES=(dev_layout gitconfig tools)
+MODULES=(dev_layout gitconfig claude_config tools)
 
 TARGET="${1:-}"
 if [ -n "$TARGET" ]; then
