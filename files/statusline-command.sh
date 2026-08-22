@@ -59,7 +59,13 @@ bar() {
 }
 
 # --- walk up the process tree to find the enclosing shell PID ---
-# (same algorithm as notify's fallback PID-walk: release_v4/notify, "resolve_and_run" section)
+# Claude Code invokes statusLine.command via `sh -c "..."`, so the immediate
+# parent is always a throwaway interpreter shell, not the real login shell
+# hosting this session - confirmed live (2026-08-22): the ancestor chain is
+# always statusline's bash -> throwaway sh -> claude -> REAL login shell ->
+# tmux server. Keep walking past that first match instead of stopping there,
+# so `found` ends up holding the outermost (real) shell, not the innermost
+# (throwaway) one.
 find_shell_pid() {
   local walk_pid=$PPID walk_cmd found=""
   while [ -n "$walk_pid" ] && [ "$walk_pid" -gt 1 ]; do
@@ -67,7 +73,7 @@ find_shell_pid() {
     walk_cmd="${walk_cmd##*/}"
     walk_cmd="${walk_cmd#-}"
     case "$walk_cmd" in
-      bash|zsh|sh|fish|dash|tcsh|csh) found="$walk_pid"; break ;;
+      bash|zsh|sh|fish|dash|tcsh|csh) found="$walk_pid" ;;
     esac
     walk_pid=$(ps -o ppid= -p "$walk_pid" 2>/dev/null | tr -d ' ')
   done
