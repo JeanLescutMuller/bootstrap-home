@@ -158,11 +158,11 @@ step "shell rc managed block"
 case "$(basename "$SHELL")" in
     zsh)
         _deploy_managed_block "$HOME/.zshrc" "BOOTSTRAP-HOME" \
-            "$(cat "$SCRIPT_DIR/files/shellrc_common"; echo; cat "$SCRIPT_DIR/files/zshrc_thin")"
+            "$(bash "$SCRIPT_DIR/files/configure_shellrc.sh" zsh)"
         ;;
     bash)
         _deploy_managed_block "$HOME/.bashrc" "BOOTSTRAP-HOME" \
-            "$(cat "$SCRIPT_DIR/files/shellrc_common"; echo; cat "$SCRIPT_DIR/files/bashrc_thin")"
+            "$(bash "$SCRIPT_DIR/files/configure_shellrc.sh" bash)"
         ;;
     *)
         warn "Unrecognized login shell '$SHELL' - skipping shell rc managed block"
