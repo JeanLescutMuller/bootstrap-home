@@ -1,5 +1,6 @@
-# zshrc_thin — zsh-specific: prompt, history behavior, conda.
-# Sourced after shellrc_common by ~/.zshrc.
+# zshrc_thin — zsh-specific: prompt, history behavior, conda. Concatenated
+# after shellrc_common into ~/.zshrc's managed block at deploy time (see
+# bootstrap.sh) — not sourced as a separate file.
 
 autoload -U colors && colors
 PS1="%{$fg[cyan]%}%n%{$reset_color%}@%{$fg[green]%}%m %{$fg[yellow]%}%~ %{$reset_color%}%% "

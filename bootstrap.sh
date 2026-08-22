@@ -28,19 +28,18 @@ fi
 # Everything here is "copy if different, back up the old one" - no other
 # logic. Real logic (directories, git config, tool installs) lives in
 # modules/ instead - see the bottom of this file.
+#
+# shellrc_common/zshrc_thin/bashrc_thin are NOT in this list - they're
+# never deployed as standalone files. Their content is concatenated
+# directly into the managed block in ~/.zshrc or ~/.bashrc instead (see
+# "shell rc managed block" below), so the split lives only in this repo
+# (one shared file to maintain, per shell logic in the *_thin files)
+# without adding indirection on the target machine.
 DOTFILES=(
     "vimrc:$HOME/.vimrc"
     "tmux.conf:$HOME/.tmux.conf"
     "CLAUDE.md:$HOME/.claude/CLAUDE.md"
-    "shellrc_common:$HOME/.shellrc_common"
 )
-
-# Only one of these applies, matching the machine's login shell.
-case "$(basename "$SHELL")" in
-    zsh)  DOTFILES+=("zshrc_thin:$HOME/.zshrc_bootstrap") ;;
-    bash) DOTFILES+=("bashrc_thin:$HOME/.bashrc_bootstrap") ;;
-    *)    warn "Unrecognized login shell '$SHELL' - skipping prompt/history dotfile" ;;
-esac
 
 _deploy_dotfile() {
     local name="$1" target="$2"
@@ -159,15 +158,14 @@ step "shell rc managed block"
 case "$(basename "$SHELL")" in
     zsh)
         _deploy_managed_block "$HOME/.zshrc" "BOOTSTRAP-HOME" \
-            "$(printf '[ -f "%s" ] && source "%s"\n[ -f "%s" ] && source "%s"' \
-                "$HOME/.shellrc_common" "$HOME/.shellrc_common" \
-                "$HOME/.zshrc_bootstrap" "$HOME/.zshrc_bootstrap")"
+            "$(cat "$SCRIPT_DIR/files/shellrc_common"; echo; cat "$SCRIPT_DIR/files/zshrc_thin")"
         ;;
     bash)
         _deploy_managed_block "$HOME/.bashrc" "BOOTSTRAP-HOME" \
-            "$(printf '[ -f "%s" ] && source "%s"\n[ -f "%s" ] && source "%s"' \
-                "$HOME/.shellrc_common" "$HOME/.shellrc_common" \
-                "$HOME/.bashrc_bootstrap" "$HOME/.bashrc_bootstrap")"
+            "$(cat "$SCRIPT_DIR/files/shellrc_common"; echo; cat "$SCRIPT_DIR/files/bashrc_thin")"
+        ;;
+    *)
+        warn "Unrecognized login shell '$SHELL' - skipping shell rc managed block"
         ;;
 esac
 

@@ -1,7 +1,11 @@
-# shellrc_common — sourced by both bashrc_thin and zshrc_thin.
-# Plain POSIX-ish syntax only (export/alias/if [[ ]]/command -v): this file
-# must parse identically under bash and zsh, so nothing shell-specific
-# (PS1 escapes, setopt/shopt) belongs here — see bashrc_thin/zshrc_thin.
+# shellrc_common — shared logic for both bash and zsh. bootstrap.sh
+# concatenates this with zshrc_thin/bashrc_thin at deploy time into one
+# managed block written directly into ~/.zshrc or ~/.bashrc — not sourced
+# as a separate file, so this split only exists in the repo, to keep the
+# shared logic in one place without adding indirection on the target
+# machine. Plain POSIX-ish syntax only (export/alias/if [[ ]]/command -v):
+# this file must parse identically under bash and zsh, so nothing
+# shell-specific (PS1 escapes, setopt/shopt) belongs here.
 
 export PATH="$HOME/.local/bin:$PATH"
 
