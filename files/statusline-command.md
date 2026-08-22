@@ -79,4 +79,4 @@ Useful for checking severity thresholds (context/rate-limit/memory at low/mid/hi
 
 - `jq` must be reachable in the invoking shell's inherited `PATH` (the script relies on Claude Code passing through the environment it was launched with — it does not source `.zshrc`/`.bashrc`, so don't assume anything beyond what's in your login shell's exported `PATH`).
 - Number formatting forces `LC_ALL=C` in every `awk` call — without it, a non-English locale (e.g. `fr_FR`) turns `1.0M` into `1,0M`.
-- **macOS-only**: the 💾 memory segment comes from `top -l 1 -s 0 -n 0`'s `PhysMem:` line and `sysctl -n hw.memsize`. Not rewritten for Linux yet (`free`/`/proc/meminfo`) — will misbehave when this dotfile deploys to the VM. Known limitation, not yet fixed.
+- The 💾 memory segment branches on `uname -s`: macOS uses `top -l 1 -s 0 -n 0`'s `PhysMem:` line and `sysctl -n hw.memsize`; Linux uses `/proc/meminfo` (`MemTotal - MemAvailable`, matching `free`'s definition of "used").

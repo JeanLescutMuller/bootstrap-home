@@ -121,15 +121,26 @@ CTX_STR="${CTX_COLOR}💬 ${RESET}[${CTX_BAR}] ${CTX_COLOR}${CTX_PCT}%${RESET}"
 RL_STR=$(blocked_or_bar "$RL_PCT" "$RL_RESETS" "5h")
 WK_STR=$(blocked_or_bar "$WK_PCT" "$WK_RESETS" "7d")
 
-MEM_RAW=$(top -l 1 -s 0 -n 0 2>/dev/null | awk -F'[ ,]+' '/^PhysMem/{for(i=1;i<=NF;i++) if($i=="used") print $(i-1)}')
-MEM_TOTAL_BYTES=$(sysctl -n hw.memsize 2>/dev/null)
-read -r MEM_USED MEM_TOTAL MEM_PCT <<< "$(LC_ALL=C awk -v raw="$MEM_RAW" -v totalb="$MEM_TOTAL_BYTES" 'BEGIN{
-  unit=substr(raw,length(raw),1); usedG=substr(raw,1,length(raw)-1)+0
-  if (unit=="M") usedG/=1024
-  totalG=totalb/1024/1024/1024
-  pct=int(usedG/totalG*100+0.5)
-  printf "%.1fG %.1fG %d", usedG, totalG, pct
-}')"
+if [ "$(uname -s)" = "Darwin" ]; then
+  MEM_RAW=$(top -l 1 -s 0 -n 0 2>/dev/null | awk -F'[ ,]+' '/^PhysMem/{for(i=1;i<=NF;i++) if($i=="used") print $(i-1)}')
+  MEM_TOTAL_BYTES=$(sysctl -n hw.memsize 2>/dev/null)
+  read -r MEM_USED MEM_TOTAL MEM_PCT <<< "$(LC_ALL=C awk -v raw="$MEM_RAW" -v totalb="$MEM_TOTAL_BYTES" 'BEGIN{
+    unit=substr(raw,length(raw),1); usedG=substr(raw,1,length(raw)-1)+0
+    if (unit=="M") usedG/=1024
+    totalG=totalb/1024/1024/1024
+    pct=int(usedG/totalG*100+0.5)
+    printf "%.1fG %.1fG %d", usedG, totalG, pct
+  }')"
+else
+  # Linux: /proc/meminfo, "used" = MemTotal - MemAvailable (matches `free`'s definition).
+  read -r MEM_USED MEM_TOTAL MEM_PCT <<< "$(LC_ALL=C awk '
+    /^MemTotal:/{total=$2} /^MemAvailable:/{avail=$2}
+    END{
+      usedG=(total-avail)/1024/1024; totalG=total/1024/1024
+      pct=int(usedG/totalG*100+0.5)
+      printf "%.1fG %.1fG %d", usedG, totalG, pct
+    }' /proc/meminfo)"
+fi
 MEM_COLOR=$(sev_color "$MEM_PCT")
 
 echo -e "${CTX_STR}    ${RL_STR}    ${WK_STR}    ${MEM_COLOR}💾 ${MEM_USED}/${MEM_TOTAL}${RESET}"
