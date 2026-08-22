@@ -41,6 +41,23 @@ host_color() {
   echo "\033[38;5;${HOST_PALETTE[$(( dec % ${#HOST_PALETTE[@]} ))]}m"
 }
 
+# --- line 1: git status colors, one per case, distinct from severity ---
+# Merge conflicts reuse SEV_RED on purpose (see below) - everything else
+# stays out of the green/yellow/red family entirely.
+GIT_CYAN='\033[38;5;51m'    # untracked files/folders - informational
+GIT_BLUE='\033[38;5;39m'    # staged, not committed - deliberately queued
+GIT_PURPLE='\033[38;5;141m' # ahead/behind remote - local vs. shared history,
+                            # same color both directions, arrow glyph alone
+                            # distinguishes ⇡ ahead from ⇣ behind
+# Unstaged tracked changes (!) intentionally get no color of their own -
+# stays the same gray as the branch name, since it's the most routine of
+# the six states and shouldn't compete for attention.
+#
+# Conflicts (✖) reuse $SEV_RED, not a new color: a conflict is genuinely
+# blocking/needs-action, closer in spirit to line 3's "critical" than to
+# a routine file count - reusing red reinforces its one existing meaning
+# in this script rather than diluting it with an unrelated second use.
+
 sev_color() {
   local pct=$1
   if [ "$pct" -ge 90 ]; then echo "$SEV_RED"
@@ -105,13 +122,65 @@ GIT_SEG=""
 if git -C "$CWD" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   BRANCH=$(git -C "$CWD" branch --show-current 2>/dev/null)
   [ -z "$BRANCH" ] && BRANCH=$(git -C "$CWD" rev-parse --short HEAD 2>/dev/null)
-  STAT=$(git -C "$CWD" diff --shortstat HEAD 2>/dev/null || git -C "$CWD" diff --shortstat 2>/dev/null)
-  ADDED=$(echo "$STAT" | grep -oE '[0-9]+ insertion' | grep -oE '[0-9]+')
-  REMOVED=$(echo "$STAT" | grep -oE '[0-9]+ deletion' | grep -oE '[0-9]+')
-  DIFF_STR=""
-  [ -n "$ADDED" ] && DIFF_STR="${DIFF_STR}+${ADDED}"
-  [ -n "$REMOVED" ] && DIFF_STR="${DIFF_STR} -${REMOVED}"
-  GIT_SEG="    ${GRAY_3}🌿 ${BRANCH}${DIFF_STR:+ (${DIFF_STR})}${RESET}"
+
+  # Six file-state counts, no +/- line-diff distinction anymore (this used
+  # to be `git diff --shortstat`, insertion/deletion *lines*; deliberately
+  # simplified to file counts per case instead - easier to reason about six
+  # consistent counts than mixing line-granularity with file-granularity).
+  #
+  # `status --porcelain=v2` instead of separate `diff`/`diff --cached`
+  # calls: a first attempt used --diff-filter to isolate conflicts from
+  # staged/unstaged, but during an active conflict git still reports the
+  # conflicted path as plain "Modified" against the index - it showed up
+  # double-counted as both unstaged AND conflicted (confirmed live).
+  # porcelain=v2 avoids this structurally: conflicted paths are their own
+  # line type ("u ...", XY like "UU"), entirely separate from ordinary
+  # entries ("1 XY ..." - X=index/staged status, Y=worktree/unstaged
+  # status, "." meaning no change in that dimension) - no overlap possible.
+  GIT_COUNTS=$(git -C "$CWD" status --porcelain=v2 2>/dev/null | awk '
+    /^\?/ { untracked++ }
+    /^u / { conflict++ }
+    /^1 / || /^2 / {
+      if (substr($2,1,1) != ".") staged++
+      if (substr($2,2,1) != ".") unstaged++
+    }
+    END { printf "%d %d %d %d", untracked+0, unstaged+0, staged+0, conflict+0 }
+  ')
+  read -r UNTRACKED_N UNSTAGED_N STAGED_N CONFLICT_N <<< "$GIT_COUNTS"
+
+  AHEAD=0; BEHIND=0
+  UPSTREAM_COUNTS=$(git -C "$CWD" rev-list --left-right --count 'HEAD...@{upstream}' 2>/dev/null)
+  [ -n "$UPSTREAM_COUNTS" ] && read -r AHEAD BEHIND <<< "$UPSTREAM_COUNTS"
+
+  # Working-tree state: untracked -> unstaged -> staged, one parenthetical,
+  # git's own workflow order. Each count shown only when non-zero.
+  WT_PARTS=()
+  [ "$UNTRACKED_N" -gt 0 ] && WT_PARTS+=("${GIT_CYAN}?${UNTRACKED_N}${GRAY_3}")
+  [ "$UNSTAGED_N" -gt 0 ]  && WT_PARTS+=("!${UNSTAGED_N}")
+  [ "$STAGED_N" -gt 0 ]    && WT_PARTS+=("${GIT_BLUE}✚${STAGED_N}${GRAY_3}")
+  WT_SEG=""
+  if [ "${#WT_PARTS[@]}" -gt 0 ]; then
+    WT_JOINED=$(IFS=' '; echo "${WT_PARTS[*]}")
+    WT_SEG=" (${WT_JOINED})"
+  fi
+
+  # Sync state (ahead/behind remote) - a different axis than working-tree
+  # state (your history vs. the remote's, not file edits), so it sits
+  # outside the parens instead of competing for space inside it.
+  SYNC_SEG=""
+  if [ "$AHEAD" -gt 0 ] || [ "$BEHIND" -gt 0 ]; then
+    SYNC_SEG=" ${GIT_PURPLE}"
+    [ "$AHEAD" -gt 0 ]  && SYNC_SEG="${SYNC_SEG}⇡${AHEAD}"
+    [ "$BEHIND" -gt 0 ] && SYNC_SEG="${SYNC_SEG}⇣${BEHIND}"
+    SYNC_SEG="${SYNC_SEG}${GRAY_3}"
+  fi
+
+  # Merge conflicts: the one deliberately "loud" (red) element - see the
+  # GIT_* color comment above for why reusing SEV_RED here is intentional.
+  CONFLICT_SEG=""
+  [ "$CONFLICT_N" -gt 0 ] && CONFLICT_SEG=" ${SEV_RED}(✖${CONFLICT_N})${GRAY_3}"
+
+  GIT_SEG="    ${GRAY_3}🌿 ${BRANCH}${WT_SEG}${SYNC_SEG}${CONFLICT_SEG}${RESET}"
 fi
 
 DATETIME=$(date '+%m/%d %H:%M:%S')

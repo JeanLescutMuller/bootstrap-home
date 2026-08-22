@@ -23,7 +23,7 @@ Three lines:
 
 | Line | Content | Color scheme |
 |------|---------|---------------|
-| 1 | 🤖 model + effort · 🖥️ short hostname · 📂 cwd · 🌿 git branch+diffstat (only inside a repo) · datetime | Grayscale, brightness = importance (model brightest, datetime dimmest) — **except hostname**, which deliberately breaks the grayscale pattern (see below) |
+| 1 | 🤖 model + effort · 🖥️ short hostname · 📂 cwd · 🌿 git branch + status (only inside a repo) · datetime | Grayscale, brightness = importance (model brightest, datetime dimmest) — **except hostname and the git status counts**, which deliberately break the grayscale pattern (see below) |
 | 2 | 🆔 session UUID (**leftmost**, deliberately — this is the field you need if the terminal crashes and you have to find the transcript/session again) · 🏷️ session title (only if renamed via `/rename`) · ⚙️ shell PID | Grayscale, dimmer = less important (UUID/PID are rarely-read technical fields) |
 | 3 | 💬 context-window usage · `5h` rate-limit usage (or `Blocked - resets in Xh Ym` past 100%) · `7d` rate-limit usage (same blocked behavior) · 💾 memory used/total | Criticality color (green <70%, yellow <70-90%, red ≥90%), applied to the whole segment (icon + bar fill + percentage), not just the bar |
 
@@ -35,6 +35,23 @@ Two things worth knowing if this ever needs revisiting:
 - **SHA-256, not `cksum`.** `cksum` is a CRC — fine for error-detection, bad for bucketing: reducing it mod a small number clusters. Verified directly: `"mac"` and `"H-Frank-1"` landed on the exact same bucket under `cksum % 6`.
 - **Palette size matters more than the hash.** The first version used only 6 colors, and even with a good hash (SHA-256), `mac`/`H-Frank-1` still collided — 6 buckets means collisions among just a few machines are expected by birthday-paradox math, not a sign of a bad hash. 14 shades resolves it for these two real machines with some headroom.
 - The palette is deliberately confined to blue/purple/cyan, kept out of the green/yellow/red severity language used on line 3, so it never reads as a status/health signal.
+
+### Git status: six cases, one color each
+
+The `🌿 branch (...)` segment shows six independent git states, each with its own count and (mostly) its own color — deliberately replacing an earlier design that only showed tracked-file insertion/deletion *line* counts from `git diff --shortstat` (couldn't represent untracked files at all, and mixed line-granularity with file-granularity once untracked counts were added). All six are now file counts, shown only when non-zero:
+
+| Case | Symbol | Color |
+|---|---|---|
+| Untracked files/folders | `?N` | cyan |
+| Unstaged tracked changes | `!N` | same gray as the branch name — the most routine state, shouldn't compete for attention |
+| Staged, not committed | `✚N` | blue |
+| Ahead (unpushed local commits) | `⇡N` | purple |
+| Behind (unmerged remote commits) | `⇣N` | same purple as ahead — same axis (local history vs. remote), the arrow glyph alone distinguishes direction |
+| Merge conflicts | `✖N` | reuses `$SEV_RED` from line 3 — the one deliberate exception to "no severity colors outside line 3": a conflict is genuinely blocking/needs-action, closer to "critical" than to a routine file count, so reusing red reinforces its one existing meaning instead of diluting it |
+
+Layout: untracked/unstaged/staged share one parenthetical in that order (git's own workflow order: untracked → edited → staged); ahead/behind sit outside the parens (different axis — your history vs. the remote's, not file edits); conflicts get their own trailing red group, appended last.
+
+Implementation note, if this ever needs revisiting: computed via `git status --porcelain=v2`, not separate `git diff`/`git diff --cached` calls. A first attempt used `--diff-filter=U` to isolate conflicts and `--diff-filter=ACDMR`/`ACMR` (excluding `U`) on the unstaged/staged counts to avoid double-counting a conflicted path — but during an active conflict, git still reports the conflicted path as plain "Modified" against the index, so it showed up counted as *both* unstaged and conflicted (confirmed live with a real merge conflict). `porcelain=v2` avoids this structurally instead of by filtering: conflicted paths are their own line type (`u ...`), entirely separate from ordinary entries (`1 XY ...` / `2 XY ...`, where X = index/staged status and Y = worktree/unstaged status, `.` meaning no change in that dimension) — no overlap is possible by construction.
 
 Design history, if you want the reasoning behind a specific choice: originally 4 lines with the UUID alone on the last line; collapsed to 3 by merging UUID+title+PID onto one line and context+usage+memory onto another. Emoji and colors were chosen interactively (candidates presented with live-rendered previews) — swap freely, nothing here is load-bearing except the field names below.
 
