@@ -16,16 +16,18 @@ setting; this script is just what's plugged into it.
 Three lines:
 
 ```
-🤖 Sonnet 5 (high)    🖥️  mac    📂 ~/dev/bootstrap-home    🌿 main (+7 -4)    08/22 22:59:00
-🆔 e6d08010-604b-46dd-b912-7ae2380b382f    🏷️  Claude status bar    ⚙️  53098
+🤖 Sonnet 5 (high)    🖥️  mac    📂 ~/dev/bootstrap-home    🌿 main (?2 !1)
+🆔 e6d08010-604b-46dd-b912-7ae2380b382f    ⚙️  53098    5h reset at 16h03
 💬 [███░░░░░] 44%    5h [░░░░░░░░] 3%    7d [░░░░░░░░] 10%    💾 15.0G/16.0G
 ```
 
 | Line | Content | Color scheme |
 |------|---------|---------------|
-| 1 | 🤖 model + effort · 🖥️ short hostname · 📂 cwd · 🌿 git branch + status (only inside a repo) · datetime | Grayscale, brightness = importance (model brightest, datetime dimmest) — **except hostname and the git status counts**, which deliberately break the grayscale pattern (see below) |
-| 2 | 🆔 session UUID (**leftmost**, deliberately — this is the field you need if the terminal crashes and you have to find the transcript/session again) · 🏷️ session title (only if renamed via `/rename`) · ⚙️ shell PID | Grayscale, dimmer = less important (UUID/PID are rarely-read technical fields) |
+| 1 | 🤖 model + effort · 🖥️ short hostname · 📂 cwd · 🌿 git branch + status (only inside a repo) | Grayscale, brightness = importance — **except hostname and the git status counts**, which deliberately break the grayscale pattern (see below) |
+| 2 | 🆔 session UUID (**leftmost**, deliberately — this is the field you need if the terminal crashes and you have to find the transcript/session again) · ⚙️ shell PID · rotating info (see below) | Grayscale, dimmer = less important |
 | 3 | 💬 context-window usage · `5h` rate-limit usage (or `Blocked - resets in Xh Ym` past 100%) · `7d` rate-limit usage (same blocked behavior) · 💾 memory used/total | Criticality color (green <70%, yellow <70-90%, red ≥90%), applied to the whole segment (icon + bar fill + percentage), not just the bar |
+
+Session title (`🏷️`) used to be on line 2 — dropped, since it's already shown in the terminal tab/prompt-box, redundant here.
 
 ### Hostname color
 
@@ -52,6 +54,26 @@ The `🌿 branch (...)` segment shows six independent git states, each with its 
 Layout: untracked/unstaged/staged share one parenthetical in that order (git's own workflow order: untracked → edited → staged); ahead/behind sit outside the parens (different axis — your history vs. the remote's, not file edits); conflicts get their own trailing red group, appended last.
 
 Implementation note, if this ever needs revisiting: computed via `git status --porcelain=v2`, not separate `git diff`/`git diff --cached` calls. A first attempt used `--diff-filter=U` to isolate conflicts and `--diff-filter=ACDMR`/`ACMR` (excluding `U`) on the unstaged/staged counts to avoid double-counting a conflicted path — but during an active conflict, git still reports the conflicted path as plain "Modified" against the index, so it showed up counted as *both* unstaged and conflicted (confirmed live with a real merge conflict). `porcelain=v2` avoids this structurally instead of by filtering: conflicted paths are their own line type (`u ...`), entirely separate from ordinary entries (`1 XY ...` / `2 XY ...`, where X = index/staged status and Y = worktree/unstaged status, `.` meaning no change in that dimension) — no overlap is possible by construction.
+
+### Background `git fetch`
+
+So ahead/behind (`⇡`/`⇣` above) stays fresh without a manual fetch. Roughly every 30s: `(seconds % 30) < 10` is a 10s-wide window every 30s, timed to land within the ~10s refresh interval without needing any state persisted between invocations (each render is a fresh process - there's nothing to persist *to*). `10#$(date +%S)` - not just `$(date +%S)` - because `date +%S` zero-pads ("08", "09") and bash `$(( ))` reads a leading zero as octal, where 8/9 aren't valid octal digits; crashes without the explicit base-10 prefix.
+
+Runs backgrounded and disowned - a slow or offline fetch must never block the statusline's own render - guarded by an `mkdir`-based lock (atomic, no `flock` dependency, one lock directory per repo path) so a slow fetch can't stack a second one on top of it before the first finishes. Verified directly, not just assumed correct: forced the 30s window open and slowed the fetch artificially, confirmed the lock directory exists while a fetch is in flight, confirmed a concurrent second invocation sees the held lock and skips cleanly with no error, confirmed cleanup after. Failures (offline, no remote) are silent on purpose - nothing useful to show on every render for those.
+
+### Rotating info (line 2, end)
+
+Was always the datetime; now rotates through three states, replacing the dropped session-title field's old position at the end of line 2. Same seconds-bucket trick as the fetch scheduler: `(seconds / 10) % 3` cycles through all three roughly every 30s, changing in step with the refresh rate rather than jumping unpredictably.
+
+1. Datetime (`08/22 22:59:00`) - the original, unchanged behavior.
+2. 7-day rate-limit reset (`7d reset on Saturday 29th at 15h`) - full weekday name + ordinal day + hour, no minutes (a reset that far out doesn't need minute precision).
+3. 5-hour rate-limit reset (`5h reset at 16h03`) - hour + minute (this one's typically same-day, so no date needed), `h` as the separator instead of `:`.
+
+Both still rotate through even while their window shows "Blocked" on line 3 (past 100%, counting down) - knowing the exact reset time is arguably *more* useful then, not less.
+
+Two portability details worth knowing if this ever needs revisiting:
+- **Epoch formatting**: `fmt_epoch()` branches on `uname -s` (same `Darwin` check already used for the memory segment) - macOS's `date -r <epoch>` vs. Linux's `date -d @<epoch>`, completely different flag meanings between the two (`-r` on Linux `date` means "read this file's mtime", not "use this epoch" - would silently do the wrong thing if not branched).
+- **Locale**: found live that `%A` (weekday name) respects the machine's locale - this machine's `LC_TIME` is `fr_CH`, so an unguarded `date +%A` rendered "samedi" instead of "Saturday". `fmt_epoch()` forces `LC_TIME=C`, same precedent as the `LC_ALL=C` already forced in the memory-segment `awk` calls above (same class of bug: locale-dependent formatting silently producing the wrong output). No `date` format specifier does the ordinal suffix ("2nd") on either platform either - `ordinal_suffix()` computes it by hand from the day-of-month number.
 
 Design history, if you want the reasoning behind a specific choice: originally 4 lines with the UUID alone on the last line; collapsed to 3 by merging UUID+title+PID onto one line and context+usage+memory onto another. Emoji and colors were chosen interactively (candidates presented with live-rendered previews) — swap freely, nothing here is load-bearing except the field names below.
 

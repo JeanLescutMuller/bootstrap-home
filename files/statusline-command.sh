@@ -75,6 +75,31 @@ bar() {
   printf '%b%s%b%s%b' "$color" "${fill// /█}" "$BAR_EMPTY" "${pad// /░}" "$RESET"
 }
 
+# --- portable epoch -> formatted-date (macOS `date -r`, Linux `date -d @`) ---
+# LC_TIME=C: found live that %A respects the machine's locale (this one is
+# fr_CH, so "Saturday" rendered as "samedi") - forced to C so weekday names
+# are always English regardless of machine locale. Same precedent as the
+# LC_ALL=C already forced in the memory-segment awk calls below, for the
+# same reason (locale-dependent formatting surprises).
+fmt_epoch() {
+  local epoch="$1" fmt="$2"
+  if [ "$(uname -s)" = "Darwin" ]; then
+    LC_TIME=C date -r "$epoch" "+$fmt" 2>/dev/null
+  else
+    LC_TIME=C date -d "@$epoch" "+$fmt" 2>/dev/null
+  fi
+}
+
+# 1st/2nd/3rd/4th... no `date` format specifier does this on either platform.
+ordinal_suffix() {
+  case "$1" in
+    1|21|31) echo "st" ;;
+    2|22) echo "nd" ;;
+    3|23) echo "rd" ;;
+    *) echo "th" ;;
+  esac
+}
+
 # --- walk up the process tree to find the enclosing shell PID ---
 # Claude Code invokes statusLine.command via `sh -c "..."`, so the immediate
 # parent is always a throwaway interpreter shell, not the real login shell
@@ -102,7 +127,6 @@ MODEL=$(echo "$input" | jq -r '.model.display_name')
 EFFORT=$(echo "$input" | jq -r '.effort.level // empty')
 CWD=$(echo "$input" | jq -r '.cwd')
 SESSION_ID=$(echo "$input" | jq -r '.session_id')
-SESSION_NAME=$(echo "$input" | jq -r '.session_name // empty')
 
 CTX_PCT=$(echo "$input" | jq -r '(.context_window.used_percentage // 0) | round')
 
@@ -122,6 +146,26 @@ GIT_SEG=""
 if git -C "$CWD" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   BRANCH=$(git -C "$CWD" branch --show-current 2>/dev/null)
   [ -z "$BRANCH" ] && BRANCH=$(git -C "$CWD" rev-parse --short HEAD 2>/dev/null)
+
+  # Background `git fetch` roughly every 30s, so ahead/behind stays fresh
+  # without a manual fetch. `(seconds % 30) < 10` is a 10s-wide window every
+  # 30s - lines up with the ~10s refresh interval without needing state
+  # persisted between invocations (each run is a fresh process). `10#`
+  # prefix: date +%S zero-pads ("08","09"), and bash `$(( ))` reads a
+  # leading zero as octal, where 8/9 aren't valid digits - would crash
+  # without it. Backgrounded + disowned so a slow/offline fetch never
+  # blocks the render; mkdir-based lock (atomic, no flock dependency) so a
+  # slow fetch can't stack up a second one before the first finishes.
+  # Failures are silent on purpose - nothing useful to show on every render
+  # for "offline" or "no remote".
+  FETCH_SEC=$((10#$(date +%S)))
+  if [ $(( FETCH_SEC % 30 )) -lt 10 ]; then
+    FETCH_LOCK="/tmp/.claude-statusline-fetch-$(printf '%s' "$CWD" | cksum | cut -d' ' -f1)"
+    if mkdir "$FETCH_LOCK" 2>/dev/null; then
+      ( git -C "$CWD" fetch --quiet >/dev/null 2>&1; rmdir "$FETCH_LOCK" 2>/dev/null ) &
+      disown 2>/dev/null
+    fi
+  fi
 
   # Six file-state counts, no +/- line-diff distinction anymore (this used
   # to be `git diff --shortstat`, insertion/deletion *lines*; deliberately
@@ -183,18 +227,43 @@ if git -C "$CWD" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   GIT_SEG="    ${GRAY_3}🌿 ${BRANCH}${WT_SEG}${SYNC_SEG}${CONFLICT_SEG}${RESET}"
 fi
 
-DATETIME=$(date '+%m/%d %H:%M:%S')
-
 HOST_SHORT=$(hostname -s)
 HOST_COLOR=$(host_color "$HOST_SHORT")
 
-echo -e "${GRAY_1}🤖 ${MODEL_STR}${RESET}    ${HOST_COLOR}🖥️  ${HOST_SHORT}${RESET}    ${GRAY_2}📂 ${CWD}${RESET}${GIT_SEG}    ${GRAY_4}${DATETIME}${RESET}"
+echo -e "${GRAY_1}🤖 ${MODEL_STR}${RESET}    ${HOST_COLOR}🖥️  ${HOST_SHORT}${RESET}    ${GRAY_2}📂 ${CWD}${RESET}${GIT_SEG}"
 
-# --- line 2: session UUID (far left, for crash recovery) | session title | shell pid ---
-TITLE_SEG=""
-[ -n "$SESSION_NAME" ] && TITLE_SEG="    ${GRAY_2}🏷️  ${SESSION_NAME}${RESET}"
+# --- line 2: session UUID (far left, for crash recovery) | shell pid | rotating info ---
+# Title dropped: already shown in the terminal tab/prompt-box, redundant here.
+#
+# Rotating info (was: datetime always) - same seconds-bucket trick as the
+# fetch scheduler above, `(seconds / 10) % 3` cycles through 3 states every
+# 30s, changing roughly in step with the ~10s refresh instead of jumping
+# unpredictably. Still rotates through the reset times even while a window
+# shows "Blocked" on line 3 - arguably more useful to know exactly when
+# you're unblocked then, not less.
+ROTATE_IDX=$(( (10#$(date +%S) / 10) % 3 ))
+case "$ROTATE_IDX" in
+  0)
+    ROTATE_STR=$(date '+%m/%d %H:%M:%S')
+    ;;
+  1)
+    if [ -n "$WK_RESETS" ]; then
+      WK_DAY=$(fmt_epoch "$WK_RESETS" "%e" | tr -d ' ')
+      ROTATE_STR="7d reset on $(fmt_epoch "$WK_RESETS" "%A") ${WK_DAY}$(ordinal_suffix "$WK_DAY") at $(fmt_epoch "$WK_RESETS" "%Hh")"
+    else
+      ROTATE_STR=$(date '+%m/%d %H:%M:%S')
+    fi
+    ;;
+  2)
+    if [ -n "$RL_RESETS" ]; then
+      ROTATE_STR="5h reset at $(fmt_epoch "$RL_RESETS" "%Hh%M")"
+    else
+      ROTATE_STR=$(date '+%m/%d %H:%M:%S')
+    fi
+    ;;
+esac
 
-echo -e "${GRAY_4}🆔 ${SESSION_ID}${RESET}${TITLE_SEG}    ${GRAY_5}⚙️  ${SHELL_PID}${RESET}"
+echo -e "${GRAY_4}🆔 ${SESSION_ID}${RESET}    ${GRAY_5}⚙️  ${SHELL_PID}${RESET}    ${GRAY_4}${ROTATE_STR}${RESET}"
 
 # --- line 3: context bar | 5h rate-limit bar | 7d rate-limit bar | memory - all colored by criticality ---
 BAR_WIDTH=8
