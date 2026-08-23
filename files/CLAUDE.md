@@ -1,10 +1,14 @@
-# General conventions (all dev machines)
+# General conventions (MacBook + Debian VM)
 
 - `~/dev/` — all source repos, flat (no category subfolders).
 - `~/opt/<project>/` — deployed/installed runtime copy (what a launchd job / systemd unit / cron points at), separate from the git source in `~/dev/<project>`.
 - `~/.local/bin/` — symlinks into `~/opt/<project>/`, never real files.
 - `~/dev/<x>` folder name must match the real GitHub repo name (check `git remote -v`, don't assume) — a drifted `~/opt/` copy name doesn't override this.
 - Never leave the shell's working directory changed after a spontaneous `cd` — change back before finishing, or ask first. The statusline's git-status segment reads the shell's live cwd, so a stray `cd` breaks it for the rest of the session, not just that command.
+
+# Development vs deployment
+
+Development (writing/editing code) happens on the MacBook only. The Debian VM, and any cloud targets, are deployment/runtime destinations — never write or edit code there directly. Which machine(s) a given project actually deploys to varies per-project (MacBook only, VM only, both, sometimes cloud too) — don't assume, check that project's own docs.
 
 # Machine-specific
 
