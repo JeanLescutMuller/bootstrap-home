@@ -42,6 +42,7 @@ DOTFILES=(
     "tmux.conf:$HOME/.tmux.conf"
     "CLAUDE.md:$HOME/.claude/CLAUDE.md"
     "statusline-command.sh:$HOME/.claude/statusline-command.sh"
+    "statusline-usage-fetch.sh:$HOME/.claude/statusline-usage-fetch.sh"
 )
 
 _deploy_dotfile() {

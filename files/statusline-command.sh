@@ -129,11 +129,35 @@ SESSION_ID=$(echo "$input" | jq -r '.session_id')
 
 CTX_PCT=$(echo "$input" | jq -r '(.context_window.used_percentage // 0) | round')
 
+# Claude Code's own stdin snapshot only updates when this session sends a
+# prompt - can go stale for hours otherwise (confirmed live, 2026-08-23).
+# Used as the starting value, then overridden below by a genuinely live
+# reading when one is available.
 RL_PCT=$(echo "$input" | jq -r '(.rate_limits.five_hour.used_percentage // 0) | round')
 RL_RESETS=$(echo "$input" | jq -r '.rate_limits.five_hour.resets_at // empty')
 
 WK_PCT=$(echo "$input" | jq -r '(.rate_limits.seven_day.used_percentage // 0) | round')
 WK_RESETS=$(echo "$input" | jq -r '.rate_limits.seven_day.resets_at // empty')
+
+# Live rate-limit reading: same GET /api/oauth/usage endpoint the `/usage`
+# command itself uses (confirmed via binary inspection, 2026-08-23), fetched
+# and cached by statusline-usage-fetch.sh (self-throttled: ~180s cache TTL,
+# 30s cross-session lock, so calling it every render is cheap - a no-op
+# fast-path except roughly once per 180s). Overrides the stdin snapshot
+# above whenever a fresh-enough (<10min old) reading exists; falls back to
+# the stdin snapshot otherwise (no token, offline, endpoint down, ...).
+bash "$HOME/.claude/statusline-usage-fetch.sh" >/dev/null 2>&1
+LIVE_CACHE="$HOME/.claude/statusline-usage-cache.json"
+if [ -f "$LIVE_CACHE" ] && [ "$(( $(date +%s) - $(jq -r '.fetched_at // 0' "$LIVE_CACHE" 2>/dev/null) ))" -lt 600 ]; then
+  if [ "$(jq -r 'has("five_hour")' "$LIVE_CACHE" 2>/dev/null)" = "true" ]; then
+    RL_PCT=$(jq -r '.five_hour.pct' "$LIVE_CACHE")
+    RL_RESETS=$(jq -r '.five_hour.resets_at' "$LIVE_CACHE")
+  fi
+  if [ "$(jq -r 'has("seven_day")' "$LIVE_CACHE" 2>/dev/null)" = "true" ]; then
+    WK_PCT=$(jq -r '.seven_day.pct' "$LIVE_CACHE")
+    WK_RESETS=$(jq -r '.seven_day.resets_at' "$LIVE_CACHE")
+  fi
+fi
 
 SHELL_PID=$(find_shell_pid)
 

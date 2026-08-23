@@ -77,6 +77,16 @@ Two portability details worth knowing if this ever needs revisiting:
 
 Design history, if you want the reasoning behind a specific choice: originally 4 lines with the UUID alone on the last line; collapsed to 3 by merging UUID+title+PID onto one line and context+usage+memory onto another. Emoji and colors were chosen interactively (candidates presented with live-rendered previews) — swap freely, nothing here is load-bearing except the field names below.
 
+### Live rate-limit reading
+
+`rate_limits.*` in the stdin payload (see below) is a **per-session snapshot** that Claude Code only refreshes when *that specific session* sends a prompt — confirmed live, 2026-08-23: a session idle for ~7 hours held the exact same `resets_at`/`used_percentage` the whole time, unmoved by real completions happening in *other* sessions, then jumped in one step the instant a prompt was finally sent in it. Windows themselves appear to be created on-demand with a fixed `created_at + 5h` boundary, not a continuously-rolling "+5h from now" — confirmed by watching one window's boundary hold rock-steady across ~7 hours of continuous real traffic in an active session, then jump exactly once (to a genuinely new boundary) the moment a new window had to be created. Between a window's expiry and the next real request, there's no window at all — nothing to refresh, so the client just keeps showing the last thing it knew, however old.
+
+So an idle session's bar can be hours stale with no way to tell just by looking at it.
+
+Fixed by calling the same endpoint the `/usage` command itself calls internally (`fetchUtilization`, found via `strings` on the Claude Code executable): `GET https://api.anthropic.com/api/oauth/usage`, bearer-token-authenticated from the OS-native credential store (macOS Keychain service `Claude Code-credentials`; Linux would read `~/.claude/.credentials.json` instead — not yet implemented here, see Known quirks). `statusline-usage-fetch.sh` does this, self-throttled (~180s file-cache TTL, 30s cross-session `mkdir`-lock so several concurrently-rendering sessions don't all hit the endpoint at once) so calling it on every render is cheap. `statusline-command.sh` calls it, then overrides the stdin snapshot with its cache whenever a reading fresher than 10 minutes exists, falling back to the stdin snapshot otherwise (no token, offline, endpoint down).
+
+Ported from [sirmalloc/ccstatusline](https://github.com/sirmalloc/ccstatusline)'s `src/utils/usage-fetch.ts`, which reverse-engineered this same endpoint first and handles considerably more than this port does (API schema migrations, enterprise no-rate-limit accounts, 429 backoff, token fingerprinting) — this is a minimal bash port covering just what this script needs.
+
 ## The statusLine JSON payload
 
 Claude Code pipes a JSON object to the command on stdin. The fields this script uses (confirmed by capturing a live payload on 2026-08-18 — **not** exhaustively documented anywhere public, so if a field goes missing after a Claude Code update, re-capture and check):
@@ -99,7 +109,7 @@ Claude Code pipes a JSON object to the command on stdin. The fields this script 
 }
 ```
 
-`rate_limits.*` is the official rate-limit data straight from Anthropic — no need for a third-party tool (e.g. `ccusage`) to get 5-hour/7-day usage-block info.
+`rate_limits.*` is the official rate-limit data straight from Anthropic, but it's a per-session cache that can go stale for hours (see "Live rate-limit reading" above) — `statusline-command.sh` overrides it with a live reading when one is available.
 
 ### Re-capturing the payload (if the schema ever changes)
 
@@ -128,3 +138,4 @@ Useful for checking severity thresholds (context/rate-limit/memory at low/mid/hi
 - `jq` must be reachable in the invoking shell's inherited `PATH` (the script relies on Claude Code passing through the environment it was launched with — it does not source `.zshrc`/`.bashrc`, so don't assume anything beyond what's in your login shell's exported `PATH`).
 - Number formatting forces `LC_ALL=C` in every `awk` call — without it, a non-English locale (e.g. `fr_FR`) turns `1.0M` into `1,0M`.
 - The 💾 memory segment branches on `uname -s`: macOS uses `top -l 1 -s 0 -n 0`'s `PhysMem:` line and `sysctl -n hw.memsize`; Linux uses `/proc/meminfo` (`MemTotal - MemAvailable`, matching `free`'s definition of "used").
+- `statusline-usage-fetch.sh` (live rate-limit reading) is macOS-only right now — it reads the OAuth token from Keychain and has no Linux fallback yet. On the VM this fails silently (empty token → script exits 0, no cache written) and `statusline-command.sh` just falls back to the stdin snapshot, same as before this feature existed. Porting the `~/.claude/.credentials.json` path from ccstatusline's `usage-fetch.ts` would close this gap.
