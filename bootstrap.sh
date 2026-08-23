@@ -41,8 +41,12 @@ DOTFILES=(
     "vimrc:$HOME/.vimrc"
     "tmux.conf:$HOME/.tmux.conf"
     "CLAUDE.md:$HOME/.claude/CLAUDE.md"
+    "dev_CLAUDE.md:$HOME/dev/CLAUDE.md"
     "statusline-command.sh:$HOME/.claude/statusline-command.sh"
     "statusline-usage-fetch.sh:$HOME/.claude/statusline-usage-fetch.sh"
+    "skills/claude-config-ownership/SKILL.md:$HOME/.claude/skills/claude-config-ownership/SKILL.md"
+    "skills/shell-scripting/SKILL.md:$HOME/.claude/skills/shell-scripting/SKILL.md"
+    "skills/python-coding/SKILL.md:$HOME/.claude/skills/python-coding/SKILL.md"
 )
 
 _deploy_dotfile() {
