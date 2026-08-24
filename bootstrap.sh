@@ -49,6 +49,20 @@ DOTFILES=(
     "skills/python-coding/SKILL.md:$HOME/.claude/skills/python-coding/SKILL.md"
 )
 
+# Backs up $1 to a single non-timestamped "$1.bak" before it gets
+# overwritten, replacing whatever backup was already there. Deliberately
+# not timestamped/accumulating: every past deployed state that came from
+# a prior bootstrap-home run is already recoverable from this repo's own
+# git history (files/ is version-controlled), so the only backup that
+# ever carries unique information is the one taken right before the very
+# next overwrite - e.g. to recover a target that was hand-edited outside
+# of bootstrap-home since the last deploy. Keeping more than one adds
+# clutter with no extra recovery value.
+_backup_before_overwrite() {
+    local target="$1"
+    [ -f "$target" ] && cp "$target" "${target}.bak"
+}
+
 _deploy_dotfile() {
     local name="$1" target="$2"
     local src="$SCRIPT_DIR/files/$name"
@@ -69,7 +83,7 @@ _deploy_dotfile() {
     fi
 
     mkdir -p "$(dirname "$target")"
-    [ -f "$target" ] && cp "$target" "${target}.bak.$(date +%Y%m%d_%H%M%S)"
+    _backup_before_overwrite "$target"
     cp "$src" "$target"
     installed "$name"
 
@@ -126,7 +140,7 @@ _deploy_managed_block() {
         return 0
     fi
 
-    [ -f "$target" ] && cp "$target" "${target}.bak.$(date +%Y%m%d_%H%M%S)"
+    _backup_before_overwrite "$target"
 
     if [ -f "$target" ] && grep -qF "$top" "$target"; then
         awk -v top="$top" '
