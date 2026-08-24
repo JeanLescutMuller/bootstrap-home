@@ -7,7 +7,7 @@ description: This machine's ownership map for ~/.claude/settings.json keys, and 
 
 No single tool owns this whole file — each owner manages specific keys and leaves the rest alone:
 
-- `respondToBashCommands`, `theme`, `statusLine` — owned by `bootstrap-home` (`modules/claude_config.sh`)
+- `respondToBashCommands`, `theme`, `statusLine`, `cleanupPeriodDays` — owned by `bootstrap-home` (`modules/claude_config.sh`)
 - `hooks` — owned by `claude-session-manager`'s own `install.sh`
 - `enabledPlugins`, `extraKnownMarketplaces` — owned by `notify`'s own `install.sh`
 

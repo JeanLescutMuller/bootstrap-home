@@ -1,6 +1,7 @@
 {
   "respondToBashCommands": false,
   "theme": "dark",
+  "cleanupPeriodDays": 365,
   "statusLine": {
     "type": "command",
     "command": "bash $HOME/.claude/statusline-command.sh",

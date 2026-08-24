@@ -62,6 +62,6 @@ with open(settings_path, "w") as f:
     fi
 }
 
-for key in respondToBashCommands theme statusLine; do
+for key in respondToBashCommands theme statusLine cleanupPeriodDays; do
     _check_or_set_json "$key"
 done
