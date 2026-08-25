@@ -11,7 +11,7 @@ RESET='\033[0m'
 GRAY_1='\033[97m'       # bright white  - model+effort (most important)
 GRAY_2='\033[37m'       # white         - cwd
 GRAY_3='\033[38;5;250m' # light gray    - git branch/diff
-GRAY_4='\033[38;5;240m' # dark gray     - entire line 2 (uuid, pid, rotating info)
+GRAY_4='\033[38;5;240m' # dark gray     - entire line 2 (uuid, rotating info)
 
 # --- line 3: criticality colors (green/yellow/red by severity) ---
 SEV_GREEN='\033[32m'; SEV_YELLOW='\033[33m'; SEV_RED='\033[31m'
@@ -22,11 +22,13 @@ BAR_EMPTY='\033[38;5;238m' # dim track for the unfilled part of a bar
 # deployed to ~/.local/bin) rather than this script carrying its own copy
 # of the SHA-256 -> mod 14 -> HOST_PALETTE algorithm - one source of truth
 # shared with the shell prompt (files/configure_shellrc.sh). $HOST_COLOR
-# is inherited for free in the common case: this script always runs as a
-# descendant of the login shell (see find_shell_pid's ancestry comment
-# below), which already exported it. Only falls back to invoking the
-# binary directly when it isn't set - e.g. Claude Code launched outside a
-# shell that ever sourced this repo's rc block.
+# is inherited for free in the common case: Claude Code invokes
+# statusLine.command via `sh -c "..."`, so this script always runs as a
+# descendant of the real login shell (confirmed live, 2026-08-22: the
+# ancestor chain is statusline's bash -> throwaway sh -> claude -> login
+# shell -> tmux server), which already exported it. Only falls back to
+# invoking the binary directly when it isn't set - e.g. Claude Code
+# launched outside a shell that ever sourced this repo's rc block.
 
 # --- line 1: git status colors, one per case, distinct from severity ---
 # Merge conflicts reuse SEV_RED on purpose (see below) - everything else
@@ -87,28 +89,6 @@ ordinal_suffix() {
   esac
 }
 
-# --- walk up the process tree to find the enclosing shell PID ---
-# Claude Code invokes statusLine.command via `sh -c "..."`, so the immediate
-# parent is always a throwaway interpreter shell, not the real login shell
-# hosting this session - confirmed live (2026-08-22): the ancestor chain is
-# always statusline's bash -> throwaway sh -> claude -> REAL login shell ->
-# tmux server. Keep walking past that first match instead of stopping there,
-# so `found` ends up holding the outermost (real) shell, not the innermost
-# (throwaway) one.
-find_shell_pid() {
-  local walk_pid=$PPID walk_cmd found=""
-  while [ -n "$walk_pid" ] && [ "$walk_pid" -gt 1 ]; do
-    walk_cmd=$(ps -o comm= -p "$walk_pid" 2>/dev/null | tr -d ' ')
-    walk_cmd="${walk_cmd##*/}"
-    walk_cmd="${walk_cmd#-}"
-    case "$walk_cmd" in
-      bash|zsh|sh|fish|dash|tcsh|csh) found="$walk_pid" ;;
-    esac
-    walk_pid=$(ps -o ppid= -p "$walk_pid" 2>/dev/null | tr -d ' ')
-  done
-  echo "$found"
-}
-
 # --- parse payload ---
 MODEL=$(echo "$input" | jq -r '.model.display_name')
 EFFORT=$(echo "$input" | jq -r '.effort.level // empty')
@@ -146,8 +126,6 @@ if [ -f "$LIVE_CACHE" ] && [ "$(( $(date +%s) - $(jq -r '.fetched_at // 0' "$LIV
     WK_RESETS=$(jq -r '.seven_day.resets_at' "$LIVE_CACHE")
   fi
 fi
-
-SHELL_PID=$(find_shell_pid)
 
 # --- line 1: model+effort | cwd | git (only if inside a repo) ---
 MODEL_STR="${MODEL}"
@@ -244,8 +222,11 @@ HOST_COLOR_ESC="\033[38;5;${HOST_COLOR_NUM}m"
 
 echo -e "${GRAY_1}🤖 ${MODEL_STR}${RESET}    ${HOST_COLOR_ESC}🖥️  ${HOST_SHORT}${RESET}    ${GRAY_2}📂 ${CWD}${RESET}${GIT_SEG}"
 
-# --- line 2: session UUID (far left, for crash recovery) | shell pid | rotating info ---
+# --- line 2: session UUID (far left, for crash recovery) | rotating info ---
 # Title dropped: already shown in the terminal tab/prompt-box, redundant here.
+# Shell PID dropped too (2026-08-25): not critical, and `/notify` still
+# surfaces it when actually needed - not worth a `ps`-walk up the process
+# tree (~5-10 forks) on every single render just to have it always visible.
 #
 # Rotating info (was: datetime always) - same seconds-bucket trick as the
 # fetch scheduler above, `(seconds / 10) % 3` cycles through 3 states every
@@ -275,7 +256,7 @@ case "$ROTATE_IDX" in
     ;;
 esac
 
-echo -e "${GRAY_4}🆔 ${SESSION_ID}    ⚙️  ${SHELL_PID}    ${ROTATE_STR}${RESET}"
+echo -e "${GRAY_4}🆔 ${SESSION_ID}    ${ROTATE_STR}${RESET}"
 
 # --- line 3: context bar | 5h rate-limit bar | 7d rate-limit bar | memory - all colored by criticality ---
 BAR_WIDTH=8

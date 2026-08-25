@@ -17,17 +17,17 @@ Three lines:
 
 ```
 🤖 Sonnet 5 (high)    🖥️  mac    📂 ~/dev/bootstrap-home    🌿 main (?2 !1)
-🆔 e6d08010-604b-46dd-b912-7ae2380b382f    ⚙️  53098    5h reset at 16h03
+🆔 e6d08010-604b-46dd-b912-7ae2380b382f    5h reset at 16h03
 💬 [███░░░░░] 44%    5h [░░░░░░░░] 3%    7d [░░░░░░░░] 10%    💾 15.0G/16.0G
 ```
 
 | Line | Content | Color scheme |
 |------|---------|---------------|
 | 1 | 🤖 model + effort · 🖥️ short hostname · 📂 cwd · 🌿 git branch + status (only inside a repo) | Grayscale, brightness = importance — **except hostname and the git status counts**, which deliberately break the grayscale pattern (see below) |
-| 2 | 🆔 session UUID (**leftmost**, deliberately — this is the field you need if the terminal crashes and you have to find the transcript/session again) · ⚙️ shell PID · rotating info (see below) | Grayscale, dimmer = less important |
+| 2 | 🆔 session UUID (**leftmost**, deliberately — this is the field you need if the terminal crashes and you have to find the transcript/session again) · rotating info (see below) | Grayscale, dimmer = less important |
 | 3 | 💬 context-window usage · `5h` rate-limit usage (or `Blocked - resets in Xh Ym` past 100%) · `7d` rate-limit usage (same blocked behavior) · 💾 memory used/total | Criticality color (green <70%, yellow <70-90%, red ≥90%), applied to the whole segment (icon + bar fill + percentage), not just the bar |
 
-Session title (`🏷️`) used to be on line 2 — dropped, since it's already shown in the terminal tab/prompt-box, redundant here.
+Session title (`🏷️`) used to be on line 2 — dropped, since it's already shown in the terminal tab/prompt-box, redundant here. Shell PID (`⚙️`) was there too — dropped 2026-08-25, not critical enough to justify a `ps`-walk up the process tree (~5-10 forks) on every single render; `/notify` still surfaces it when actually needed.
 
 ### Hostname color
 
