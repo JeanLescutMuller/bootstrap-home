@@ -83,61 +83,36 @@ fi
 # marker file needed), hashed host color, bold yellow workdir. Same color
 # scheme on both shells, different escape syntax.
 #
-# Host color: same SHA-256 -> mod 14 -> HOST_PALETTE logic as the statusline
-# script's host_color() (files/statusline-command.sh) - same 14 xterm-256
-# codes, same order, so a given machine's prompt and statusline land on the
-# identical color. Computed once at rc-load time (hostname doesn't change
-# mid-session), not per-prompt like the statusline (which re-execs as a
-# fresh process on every render). A case statement, not a bash/zsh array,
-# because zsh arrays are 1-indexed by default and bash's are 0-indexed -
-# a case on 0-13 sidesteps that entirely and is identical text in both
-# branches below. ---
-_BH_HOST_COLOR_CASE='case "$1" in
-    0) echo 25 ;; 1) echo 27 ;; 2) echo 33 ;; 3) echo 39 ;; 4) echo 45 ;;
-    5) echo 51 ;; 6) echo 50 ;; 7) echo 44 ;; 8) echo 57 ;; 9) echo 63 ;;
-    10) echo 99 ;; 11) echo 129 ;; 12) echo 135 ;; 13) echo 141 ;;
-esac'
-
-_BH_HOST_COLOR_SETUP=$(cat << EOF
-_bh_host_palette_code() {
-    $_BH_HOST_COLOR_CASE
-}
-_bh_hostname=\$(hostname -s 2>/dev/null || hostname)
-if command -v sha256sum >/dev/null 2>&1; then
-    _bh_host_hash=\$(printf '%s' "\$_bh_hostname" | sha256sum | cut -c1-8)
-else
-    _bh_host_hash=\$(printf '%s' "\$_bh_hostname" | shasum -a 256 | cut -c1-8)
-fi
-_bh_host_dec=\$((16#\$_bh_host_hash))
-_bh_host_color=\$(_bh_host_palette_code \$(( _bh_host_dec % 14 )))
-EOF
-)
-
+# Host color comes from the shared get_host_color binary (files/get_host_
+# color.sh, deployed to ~/.local/bin by bootstrap.sh's "own binaries" step)
+# instead of duplicating its SHA-256 -> mod 14 -> HOST_PALETTE algorithm
+# here - one source of truth shared with the statusline script. Exported
+# (not local) so other programs under this shell, the statusline in
+# particular, can reuse the already-computed value instead of re-running
+# the hash themselves. ---
 if [ "$TARGET_SHELL" = "zsh" ]; then
-    echo
-    echo "$_BH_HOST_COLOR_SETUP"
     cat << 'EOF'
+
+export HOST_COLOR="$(get_host_color)"
 if [ "$(whoami)" = "root" ]; then
     _bh_user_color="red"
 else
     _bh_user_color="cyan"
 fi
 autoload -U colors && colors
-PS1="%{$fg[$_bh_user_color]%}%n%{$reset_color%}@%F{$_bh_host_color}%m %{$fg[yellow]%}%~ %{$reset_color%}%% "
-unset _bh_user_color _bh_hostname _bh_host_hash _bh_host_dec _bh_host_color
-unfunction _bh_host_palette_code
+PS1="%{$fg[$_bh_user_color]%}%n%{$reset_color%}@%F{$HOST_COLOR}%m %{$fg[yellow]%}%~ %{$reset_color%}%% "
+unset _bh_user_color
 EOF
 elif [ "$TARGET_SHELL" = "bash" ]; then
-    echo
-    echo "$_BH_HOST_COLOR_SETUP"
     cat << 'EOF'
+
+export HOST_COLOR="$(get_host_color)"
 if [ "$(whoami)" = "root" ]; then
     _bh_user_color="31"
 else
     _bh_user_color="36"
 fi
-export PS1="\[\033[3;${_bh_user_color}m\]\u\[\033[m\]@\[\033[38;5;${_bh_host_color}m\]\h:\[\033[1;33m\]\w\[\033[m\]\$ "
-unset _bh_user_color _bh_hostname _bh_host_hash _bh_host_dec _bh_host_color
-unset -f _bh_host_palette_code
+export PS1="\[\033[3;${_bh_user_color}m\]\u\[\033[m\]@\[\033[38;5;${HOST_COLOR}m\]\h:\[\033[1;33m\]\w\[\033[m\]\$ "
+unset _bh_user_color
 EOF
 fi

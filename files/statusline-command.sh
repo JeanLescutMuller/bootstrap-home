@@ -18,27 +18,15 @@ SEV_GREEN='\033[32m'; SEV_YELLOW='\033[33m'; SEV_RED='\033[31m'
 BAR_EMPTY='\033[38;5;238m' # dim track for the unfilled part of a bar
 
 # --- line 1: host identity, hashed color (deliberately not hardcoded) ---
-# A hostname->color lookup table would leave every new machine on an
-# "undefined" color until someone edits this script and redeploys it
-# everywhere - hashing gives any hostname a stable color the moment this
-# first runs there, no maintenance. SHA-256, not cksum: cksum is a CRC,
-# fine for error-detection but reducing it mod a small bucket count
-# clusters badly (verified: "mac" and "H-Frank-1" landed on the exact
-# same bucket with cksum %6). 14 shades keeps collisions rare across a
-# handful of real machines - kept entirely in the blue/purple/cyan
-# family, deliberately out of the green/yellow/red severity language
-# used on line 3, so it never reads as a status signal.
-HOST_PALETTE=(25 27 33 39 45 51 50 44 57 63 99 129 135 141)
-host_color() {
-  local host="$1" hex dec
-  if command -v sha256sum >/dev/null 2>&1; then
-    hex=$(printf '%s' "$host" | sha256sum | cut -c1-8)
-  else
-    hex=$(printf '%s' "$host" | shasum -a 256 | cut -c1-8)
-  fi
-  dec=$((16#$hex))
-  echo "\033[38;5;${HOST_PALETTE[$(( dec % ${#HOST_PALETTE[@]} ))]}m"
-}
+# Comes from the shared get_host_color binary (files/get_host_color.sh,
+# deployed to ~/.local/bin) rather than this script carrying its own copy
+# of the SHA-256 -> mod 14 -> HOST_PALETTE algorithm - one source of truth
+# shared with the shell prompt (files/configure_shellrc.sh). $HOST_COLOR
+# is inherited for free in the common case: this script always runs as a
+# descendant of the login shell (see find_shell_pid's ancestry comment
+# below), which already exported it. Only falls back to invoking the
+# binary directly when it isn't set - e.g. Claude Code launched outside a
+# shell that ever sourced this repo's rc block.
 
 # --- line 1: git status colors, one per case, distinct from severity ---
 # Merge conflicts reuse SEV_RED on purpose (see below) - everything else
@@ -251,9 +239,10 @@ if git -C "$CWD" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
 fi
 
 HOST_SHORT=$(hostname -s)
-HOST_COLOR=$(host_color "$HOST_SHORT")
+HOST_COLOR_NUM="${HOST_COLOR:-$(get_host_color "$HOST_SHORT" 2>/dev/null)}"
+HOST_COLOR_ESC="\033[38;5;${HOST_COLOR_NUM}m"
 
-echo -e "${GRAY_1}🤖 ${MODEL_STR}${RESET}    ${HOST_COLOR}🖥️  ${HOST_SHORT}${RESET}    ${GRAY_2}📂 ${CWD}${RESET}${GIT_SEG}"
+echo -e "${GRAY_1}🤖 ${MODEL_STR}${RESET}    ${HOST_COLOR_ESC}🖥️  ${HOST_SHORT}${RESET}    ${GRAY_2}📂 ${CWD}${RESET}${GIT_SEG}"
 
 # --- line 2: session UUID (far left, for crash recovery) | shell pid | rotating info ---
 # Title dropped: already shown in the terminal tab/prompt-box, redundant here.

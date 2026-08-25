@@ -92,6 +92,45 @@ _deploy_dotfile() {
     fi
 }
 
+# Own binaries: real file under ~/opt/bootstrap-home/bin/, symlinked from
+# ~/.local/bin/ (per files/CLAUDE.md's rule that ~/.local/bin holds only
+# symlinks into ~/opt/<project>/, never real files - same pattern as
+# claude-session-manager's csm/status or notify's own binary). Shape
+# mirrors DOTFILES: source name in files/, bin name on PATH.
+OWN_BINS=(
+    "get_host_color.sh:get_host_color"
+)
+
+_deploy_own_bin() {
+    local name="$1" bin_name="$2"
+    local src="$SCRIPT_DIR/files/$name"
+    local target="$HOME/opt/bootstrap-home/bin/$bin_name"
+    local link="$HOME/.local/bin/$bin_name"
+
+    if [ ! -f "$src" ]; then
+        fail "$bin_name (not found in files/)"
+        return
+    fi
+
+    if [ -f "$target" ] && diff -q "$src" "$target" >/dev/null 2>&1 \
+        && [ -L "$link" ] && [ "$(readlink "$link")" = "$target" ]; then
+        ok "$bin_name"
+        return
+    fi
+
+    if [ "$INSTALL" = "false" ]; then
+        skip "$bin_name"
+        return
+    fi
+
+    mkdir -p "$(dirname "$target")" "$(dirname "$link")"
+    _backup_before_overwrite "$target"
+    cp "$src" "$target"
+    chmod +x "$target"
+    ln -sf "$target" "$link"
+    installed "$bin_name"
+}
+
 _sha256() {
     if command -v sha256sum >/dev/null 2>&1; then sha256sum | awk '{print $1}'
     else shasum -a 256 | awk '{print $1}'; fi
@@ -174,6 +213,11 @@ _deploy_managed_block() {
 step "dotfiles"
 for entry in "${DOTFILES[@]}"; do
     _deploy_dotfile "${entry%%:*}" "${entry#*:}"
+done
+
+step "own binaries"
+for entry in "${OWN_BINS[@]}"; do
+    _deploy_own_bin "${entry%%:*}" "${entry#*:}"
 done
 
 step "shell rc managed block"
