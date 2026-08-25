@@ -87,6 +87,18 @@ Fixed by calling the same endpoint the `/usage` command itself calls internally 
 
 Ported from [sirmalloc/ccstatusline](https://github.com/sirmalloc/ccstatusline)'s `src/utils/usage-fetch.ts`, which reverse-engineered this same endpoint first and handles considerably more than this port does (API schema migrations, enterprise no-rate-limit accounts, 429 backoff, token fingerprinting) — this is a minimal bash port covering just what this script needs.
 
+### Cache layout (2026-08-25)
+
+With 30-50 concurrent sessions common, per-session/per-render recomputation of anything that's actually shared got expensive fast. All caches now live under one directory, `~/.claude/statusline-caches/`:
+
+```
+claude-utilization.json   5h/7d rate limits - machine-wide, TTL 180s (see above)
+static.json               host color - machine-wide, no TTL (hostname never changes)
+git/<hash(cwd)>.json      git branch/status segment - per-folder, TTL 8s
+```
+
+Locks stay in `/tmp/` (`.claude-statusline-usage-lock`, `.claude-statusline-gitstatus-<hash>`) — a lock surviving reboot has no value, so no reason to put them alongside the data caches. Host color has no lock at all: the value is deterministic per hostname, so two sessions racing to compute it just write the same result twice, never a wrong one - only the data caches that can legitimately go stale (utilization, git status) need lock-guarded leader election.
+
 ## The statusLine JSON payload
 
 Claude Code pipes a JSON object to the command on stdin. The fields this script uses (confirmed by capturing a live payload on 2026-08-18 — **not** exhaustively documented anywhere public, so if a field goes missing after a Claude Code update, re-capture and check):

@@ -14,14 +14,15 @@
 # locking/token-fingerprinting edge cases properly - this is a minimal bash
 # port covering just what statusline-command.sh needs.
 #
-# Not part of the git source, not deployed by bootstrap.sh - called from
-# statusline-command.sh on every render, but does real work only when the
-# file cache is stale AND no other invocation currently holds the lock:
-# 180s cache TTL, 30s lock TTL, mkdir-based atomic lock (same pattern
-# already used for the background git-fetch elsewhere in
+# Called from statusline-command.sh on every render, but does real work
+# only when the file cache is stale AND no other invocation currently
+# holds the lock: 180s cache TTL, 30s lock TTL, mkdir-based atomic lock
+# (same pattern already used for the background git-fetch elsewhere in
 # statusline-command.sh).
 
-CACHE_FILE="$HOME/.claude/statusline-usage-cache.json"
+CACHE_DIR="${STATUSLINE_CACHE_DIR:-$HOME/.claude/statusline-caches}"
+mkdir -p "$CACHE_DIR"
+CACHE_FILE="$CACHE_DIR/claude-utilization.json"
 LOCK_DIR="/tmp/.claude-statusline-usage-lock"
 CACHE_MAX_AGE=180
 LOCK_MAX_AGE=30

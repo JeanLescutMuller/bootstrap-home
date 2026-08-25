@@ -5,6 +5,15 @@
 
 input=$(cat)
 
+# All statusline cache files live under one directory instead of scattered
+# loose in ~/.claude/ - claude-utilization.json (5h/7d rate limits, shared
+# machine-wide), static.json (machine-invariant data - currently just host
+# color), git/<hash(cwd)>.json (per-folder git status, one entry per
+# distinct repo path). Locks stay in /tmp (existing precedent, and a lock
+# surviving reboot has no value anyway).
+CACHE_DIR="$HOME/.claude/statusline-caches"
+mkdir -p "$CACHE_DIR/git"
+
 RESET='\033[0m'
 
 # --- lines 1-2: grayscale, brightness = importance ---
@@ -114,8 +123,8 @@ WK_RESETS=$(echo "$input" | jq -r '.rate_limits.seven_day.resets_at // empty')
 # fast-path except roughly once per 180s). Overrides the stdin snapshot
 # above whenever a fresh-enough (<10min old) reading exists; falls back to
 # the stdin snapshot otherwise (no token, offline, endpoint down, ...).
-bash "$HOME/.claude/statusline-usage-fetch.sh" >/dev/null 2>&1
-LIVE_CACHE="$HOME/.claude/statusline-usage-cache.json"
+STATUSLINE_CACHE_DIR="$CACHE_DIR" bash "$HOME/.claude/statusline-usage-fetch.sh" >/dev/null 2>&1
+LIVE_CACHE="$CACHE_DIR/claude-utilization.json"
 if [ -f "$LIVE_CACHE" ] && [ "$(( $(date +%s) - $(jq -r '.fetched_at // 0' "$LIVE_CACHE" 2>/dev/null) ))" -lt 600 ]; then
   if [ "$(jq -r 'has("five_hour")' "$LIVE_CACHE" 2>/dev/null)" = "true" ]; then
     RL_PCT=$(jq -r '.five_hour.pct' "$LIVE_CACHE")
@@ -131,7 +140,31 @@ fi
 MODEL_STR="${MODEL}"
 [ -n "$EFFORT" ] && MODEL_STR="${MODEL} (${EFFORT})"
 
+# Per-folder cache (not just per-session): several concurrent sessions
+# often share the same cwd, and would otherwise each independently re-run
+# every git command below on every render. One computation per folder per
+# GIT_CACHE_MAX_AGE window, shared by however many sessions are open
+# there - same mkdir-lock pattern as everything else here. Caches the
+# fully-rendered segment string, not the individual fields, so a cache
+# hit is a single jq read with no rebuild logic needed.
+GIT_CACHE_KEY=$(printf '%s' "$CWD" | cksum | cut -d' ' -f1)
+GIT_CACHE_FILE="$CACHE_DIR/git/$GIT_CACHE_KEY.json"
+GIT_CACHE_LOCK="/tmp/.claude-statusline-gitstatus-$GIT_CACHE_KEY"
+GIT_CACHE_MAX_AGE=8
+
 GIT_SEG=""
+GOT_GIT_CACHE=false
+if [ -f "$GIT_CACHE_FILE" ]; then
+  GIT_CACHE_AGE=$(( $(date +%s) - $(jq -r '.fetched_at // 0' "$GIT_CACHE_FILE" 2>/dev/null) ))
+  if [ "$GIT_CACHE_AGE" -lt "$GIT_CACHE_MAX_AGE" ]; then
+    GIT_SEG=$(jq -r '.git_seg' "$GIT_CACHE_FILE" 2>/dev/null)
+    GOT_GIT_CACHE=true
+  fi
+fi
+
+if [ "$GOT_GIT_CACHE" = true ]; then
+  : # GIT_SEG already set from cache above
+elif mkdir "$GIT_CACHE_LOCK" 2>/dev/null; then
 if git -C "$CWD" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   BRANCH=$(git -C "$CWD" branch --show-current 2>/dev/null)
   [ -z "$BRANCH" ] && BRANCH=$(git -C "$CWD" rev-parse --short HEAD 2>/dev/null)
@@ -215,9 +248,34 @@ if git -C "$CWD" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
 
   GIT_SEG="    ${GRAY_3}🌿 ${BRANCH}${WT_SEG}${SYNC_SEG}${CONFLICT_SEG}${RESET}"
 fi
+  jq -n --arg seg "$GIT_SEG" '{fetched_at: (now|floor), git_seg: $seg}' > "$GIT_CACHE_FILE.tmp.$$" 2>/dev/null \
+    && mv "$GIT_CACHE_FILE.tmp.$$" "$GIT_CACHE_FILE"
+  rmdir "$GIT_CACHE_LOCK" 2>/dev/null
+elif [ -f "$GIT_CACHE_FILE" ]; then
+  # Another session is already recomputing right now - stale-but-present
+  # beats nothing for this one render.
+  GIT_SEG=$(jq -r '.git_seg' "$GIT_CACHE_FILE" 2>/dev/null)
+fi
 
+# Host color: same idea as the git cache above, but simpler - the value
+# never changes for a given hostname, so no TTL, just "compute once per
+# machine, ever." Skipped entirely when $HOST_COLOR is already inherited
+# from the shell (the common case, see the comment near the top).
 HOST_SHORT=$(hostname -s)
-HOST_COLOR_NUM="${HOST_COLOR:-$(get_host_color "$HOST_SHORT" 2>/dev/null)}"
+STATIC_CACHE="$CACHE_DIR/static.json"
+if [ -n "${HOST_COLOR:-}" ]; then
+  HOST_COLOR_NUM="$HOST_COLOR"
+else
+  HOST_COLOR_NUM=$(jq -r '.host_color // empty' "$STATIC_CACHE" 2>/dev/null)
+  if [ -z "$HOST_COLOR_NUM" ]; then
+    HOST_COLOR_NUM=$(get_host_color "$HOST_SHORT" 2>/dev/null)
+    # Atomic write via own tmp filename, no lock needed: the value is
+    # deterministic, so two sessions racing to compute it just write the
+    # same result twice, not a wrong one.
+    jq -n --arg c "$HOST_COLOR_NUM" '{host_color: $c}' > "$STATIC_CACHE.tmp.$$" 2>/dev/null \
+      && mv "$STATIC_CACHE.tmp.$$" "$STATIC_CACHE"
+  fi
+fi
 HOST_COLOR_ESC="\033[38;5;${HOST_COLOR_NUM}m"
 
 echo -e "${GRAY_1}🤖 ${MODEL_STR}${RESET}    ${HOST_COLOR_ESC}🖥️  ${HOST_SHORT}${RESET}    ${GRAY_2}📂 ${CWD}${RESET}${GIT_SEG}"
