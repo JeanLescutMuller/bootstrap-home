@@ -285,15 +285,30 @@ RL_STR=$(blocked_or_bar "$RL_PCT" "$RL_RESETS" "5h")
 WK_STR=$(blocked_or_bar "$WK_PCT" "$WK_RESETS" "7d")
 
 if [ "$(uname -s)" = "Darwin" ]; then
-  MEM_RAW=$(top -l 1 -s 0 -n 0 2>/dev/null | awk -F'[ ,]+' '/^PhysMem/{for(i=1;i<=NF;i++) if($i=="used") print $(i-1)}')
+  # vm_stat instead of `top -l 1`: top always walks the full process table
+  # to build its summary line even with `-n 0` (display-row count only, not
+  # a scan-skip flag) - measured live (2026-08-25), under real load (30-50
+  # concurrent Claude Code sessions on this machine): 5-9s real, 3.5-5s sys
+  # CPU per call. Gets worse as the process table grows, which is exactly
+  # what's been happening - ruinous re-run every ~10s across that many
+  # sessions. vm_stat reads kernel page counters directly (no per-process
+  # work at all): measured at the same time, ~0.04s real, unmeasurably low
+  # CPU.
+  # "used" approximated as active+wired+compressed pages, matching top's
+  # PhysMem definition closely enough for a decorative bar (not exact -
+  # top's figure includes some additional accounting this skips).
   MEM_TOTAL_BYTES=$(sysctl -n hw.memsize 2>/dev/null)
-  read -r MEM_USED MEM_TOTAL MEM_PCT <<< "$(LC_ALL=C awk -v raw="$MEM_RAW" -v totalb="$MEM_TOTAL_BYTES" 'BEGIN{
-    unit=substr(raw,length(raw),1); usedG=substr(raw,1,length(raw)-1)+0
-    if (unit=="M") usedG/=1024
-    totalG=totalb/1024/1024/1024
-    pct=int(usedG/totalG*100+0.5)
-    printf "%.1fG %.1fG %d", usedG, totalG, pct
-  }')"
+  read -r MEM_USED MEM_TOTAL MEM_PCT <<< "$(LC_ALL=C vm_stat | awk -v totalb="$MEM_TOTAL_BYTES" '
+    NR==1 { for (i=1;i<=NF;i++) if ($i=="of") { pagesize=$(i+1)+0 }; next }
+    /^Pages active/ { active=$NF+0 }
+    /^Pages wired down/ { wired=$NF+0 }
+    /^Pages occupied by compressor/ { compressor=$NF+0 }
+    END {
+      usedG=(active+wired+compressor)*pagesize/1024/1024/1024
+      totalG=totalb/1024/1024/1024
+      pct=int(usedG/totalG*100+0.5)
+      printf "%.1fG %.1fG %d", usedG, totalG, pct
+    }')"
 else
   # Linux: /proc/meminfo, "used" = MemTotal - MemAvailable (matches `free`'s definition).
   read -r MEM_USED MEM_TOTAL MEM_PCT <<< "$(LC_ALL=C awk '
