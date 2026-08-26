@@ -99,6 +99,7 @@ _deploy_dotfile() {
 # mirrors DOTFILES: source name in files/, bin name on PATH.
 OWN_BINS=(
     "get_host_color.sh:get_host_color"
+    "statusline-glances-poll.sh:statusline-glances-poll"
 )
 
 _deploy_own_bin() {

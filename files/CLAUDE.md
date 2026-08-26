@@ -14,3 +14,7 @@ Development (writing/editing code) happens on the MacBook only. The Debian VM, a
 
 - **macOS → Debian VM**: reachable via `ssh H-Frank-1` (alias in `~/.ssh/config`; Hostinger EC2, Debian 12). Setup/provisioning details live in `bootstrap-vm`, not here.
 - **Debian VM**: `~/opt/` (user's own tools) is distinct from root-owned `/opt/` (root-run systemd services, e.g. `/opt/auto-commit` as of 2026-08-24 — being migrated to user-scope `~/opt/` + `systemd --user`, since root/system scope should be the exception, not the default).
+
+# Monitoring
+
+- **CPU/memory**: `glances` (installed via `bootstrap-home`'s `statusline_metrics` module) samples system CPU/memory every 30s into `~/.claude/statusline-caches/system-metrics.json`, read by the Claude Code statusline instead of it computing memory itself on every render. See `bootstrap-home/files/statusline-command.md` for the full rationale.

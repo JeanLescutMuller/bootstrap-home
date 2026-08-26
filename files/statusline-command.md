@@ -87,7 +87,7 @@ Fixed by calling the same endpoint the `/usage` command itself calls internally 
 
 Ported from [sirmalloc/ccstatusline](https://github.com/sirmalloc/ccstatusline)'s `src/utils/usage-fetch.ts`, which reverse-engineered this same endpoint first and handles considerably more than this port does (API schema migrations, enterprise no-rate-limit accounts, 429 backoff, token fingerprinting) — this is a minimal bash port covering just what this script needs.
 
-### Cache layout (2026-08-25)
+### Cache layout (2026-08-25, memory entry added 2026-08-26)
 
 With 30-50 concurrent sessions common, per-session/per-render recomputation of anything that's actually shared got expensive fast. All caches now live under one directory, `~/.claude/statusline-caches/`:
 
@@ -95,7 +95,20 @@ With 30-50 concurrent sessions common, per-session/per-render recomputation of a
 claude-utilization.json   5h/7d rate limits - machine-wide, TTL 180s (see above)
 static.json               host color - machine-wide, no TTL (hostname never changes)
 git/<hash(cwd)>.json      git branch/status segment - per-folder, TTL 8s
+system-metrics.json       CPU/memory - machine-wide, TTL 90s (see below)
 ```
+
+### CPU/memory reading (2026-08-26)
+
+Used to compute memory itself every render (`vm_stat` on macOS, `/proc/meminfo` on Linux - fast in isolation, but that's still a live syscall-scan on every one of every session's renders). Replaced with reading `system-metrics.json`, written independently every 30s by `files/statusline-glances-poll.sh` (a `glances --stdout-json` sample, scheduled by `modules/statusline_metrics.sh` - a launchd timer on macOS, a systemd `--user` timer on Linux) via `~/.local/bin/statusline-glances-poll`. Same shape as the rate-limit fix: one sample on a fixed schedule, shared by however many sessions are open, instead of N sessions each computing it N times a minute.
+
+`glances` itself isn't cheap per invocation (~0.4s CPU, ~2.5s wall - full Python + psutil startup each time, measured 2026-08-26) but at one sample per 30s that's under 2% of a single core sustained, and critically, that cost no longer scales with session count at all.
+
+Falls back to the old direct-computation path (`vm_stat`/`/proc/meminfo`) when the cache is missing or older than 90s (three missed poll cycles) - e.g. the poller isn't installed/running on this machine yet.
+
+Two things worth knowing if this ever needs revisiting:
+- `modules/statusline_metrics.sh` is deliberately **not** in `bootstrap.sh`'s default `MODULES` list - unlike the other modules, it installs new third-party software (`glances`) and registers a persistent background scheduler, so it only runs where explicitly targeted: `INSTALL=true bash bootstrap.sh statusline_metrics`.
+- Schedulers (launchd, systemd, cron) don't reliably inherit an interactive shell's `PATH` - confirmed live, 2026-08-26: launchd's own minimal PATH doesn't include Homebrew's `/opt/homebrew/bin`, so the poller silently failed (`glances: command not found`, exit 127) the first time launchd actually fired it on its own schedule rather than being run manually from a shell. Fixed by hardcoding a search path at the top of `statusline-glances-poll.sh` instead of relying on inheritance.
 
 Locks stay in `/tmp/` (`.claude-statusline-usage-lock`, `.claude-statusline-gitstatus-<hash>`) — a lock surviving reboot has no value, so no reason to put them alongside the data caches. Host color has no lock at all: the value is deterministic per hostname, so two sessions racing to compute it just write the same result twice, never a wrong one - only the data caches that can legitimately go stale (utilization, git status) need lock-guarded leader election.
 
@@ -148,6 +161,6 @@ Useful for checking severity thresholds (context/rate-limit/memory at low/mid/hi
 ## Known quirks
 
 - `jq` must be reachable in the invoking shell's inherited `PATH` (the script relies on Claude Code passing through the environment it was launched with — it does not source `.zshrc`/`.bashrc`, so don't assume anything beyond what's in your login shell's exported `PATH`).
-- Number formatting forces `LC_ALL=C` in every `awk` call — without it, a non-English locale (e.g. `fr_FR`) turns `1.0M` into `1,0M`.
-- The 💾 memory segment branches on `uname -s`: macOS uses `top -l 1 -s 0 -n 0`'s `PhysMem:` line and `sysctl -n hw.memsize`; Linux uses `/proc/meminfo` (`MemTotal - MemAvailable`, matching `free`'s definition of "used").
+- Number formatting forces `LC_ALL=C` in every `awk` call, and `LC_NUMERIC=C` on the one `printf "%.1f"` call (memory formatting) — without it, a non-English locale (e.g. `fr_CH`) turns `1.0M` into `1,0M`, and bash's `printf %f` outright rejects a period-decimal value as "invalid number" rather than reformatting it.
+- The 💾 memory segment reads `system-metrics.json` (glances, see "CPU/memory reading" above) when fresh, else falls back to a direct read: macOS uses `vm_stat` + `sysctl -n hw.memsize`; Linux uses `/proc/meminfo` (`MemTotal - MemAvailable`, matching `free`'s definition of "used").
 - `statusline-usage-fetch.sh` (live rate-limit reading) is macOS-only right now — it reads the OAuth token from Keychain and has no Linux fallback yet. On the VM this fails silently (empty token → script exits 0, no cache written) and `statusline-command.sh` just falls back to the stdin snapshot, same as before this feature existed. Porting the `~/.claude/.credentials.json` path from ccstatusline's `usage-fetch.ts` would close this gap.

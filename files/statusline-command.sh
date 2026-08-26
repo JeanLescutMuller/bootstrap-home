@@ -342,40 +342,62 @@ CTX_STR="${CTX_COLOR}💬 ${RESET}[${CTX_BAR}] ${CTX_COLOR}${CTX_PCT}%${RESET}"
 RL_STR=$(blocked_or_bar "$RL_PCT" "$RL_RESETS" "5h")
 WK_STR=$(blocked_or_bar "$WK_PCT" "$WK_RESETS" "7d")
 
-if [ "$(uname -s)" = "Darwin" ]; then
-  # vm_stat instead of `top -l 1`: top always walks the full process table
-  # to build its summary line even with `-n 0` (display-row count only, not
-  # a scan-skip flag) - measured live (2026-08-25), under real load (30-50
-  # concurrent Claude Code sessions on this machine): 5-9s real, 3.5-5s sys
-  # CPU per call. Gets worse as the process table grows, which is exactly
-  # what's been happening - ruinous re-run every ~10s across that many
-  # sessions. vm_stat reads kernel page counters directly (no per-process
-  # work at all): measured at the same time, ~0.04s real, unmeasurably low
-  # CPU.
-  # "used" approximated as active+wired+compressed pages, matching top's
-  # PhysMem definition closely enough for a decorative bar (not exact -
-  # top's figure includes some additional accounting this skips).
-  MEM_TOTAL_BYTES=$(sysctl -n hw.memsize 2>/dev/null)
-  read -r MEM_USED MEM_TOTAL MEM_PCT <<< "$(LC_ALL=C vm_stat | awk -v totalb="$MEM_TOTAL_BYTES" '
-    NR==1 { for (i=1;i<=NF;i++) if ($i=="of") { pagesize=$(i+1)+0 }; next }
-    /^Pages active/ { active=$NF+0 }
-    /^Pages wired down/ { wired=$NF+0 }
-    /^Pages occupied by compressor/ { compressor=$NF+0 }
-    END {
-      usedG=(active+wired+compressor)*pagesize/1024/1024/1024
-      totalG=totalb/1024/1024/1024
-      pct=int(usedG/totalG*100+0.5)
-      printf "%.1fG %.1fG %d", usedG, totalG, pct
-    }')"
-else
-  # Linux: /proc/meminfo, "used" = MemTotal - MemAvailable (matches `free`'s definition).
-  read -r MEM_USED MEM_TOTAL MEM_PCT <<< "$(LC_ALL=C awk '
-    /^MemTotal:/{total=$2} /^MemAvailable:/{avail=$2}
-    END{
-      usedG=(total-avail)/1024/1024; totalG=total/1024/1024
-      pct=int(usedG/totalG*100+0.5)
-      printf "%.1fG %.1fG %d", usedG, totalG, pct
-    }' /proc/meminfo)"
+# Reads glances' own periodic sample (statusline-glances-poll.sh, run
+# every 30s by an OS-native scheduler - see modules/statusline_metrics.sh)
+# instead of computing memory itself: a zero-fork file read instead of a
+# vm_stat/top call on every render. Falls back to computing it directly
+# (old behavior) when that cache doesn't exist or is stale (>90s - three
+# missed cycles) - e.g. the poller isn't installed/running yet, or has
+# stopped.
+METRICS_CACHE="$CACHE_DIR/system-metrics.json"
+GOT_METRICS_CACHE=false
+if [ -f "$METRICS_CACHE" ] && [ "$(( $(date +%s) - $(jq -r '.fetched_at // 0' "$METRICS_CACHE" 2>/dev/null) ))" -lt 90 ]; then
+  # printf, not a bare jq -r: jq strips trailing zeros from numbers
+  # (16.0 -> "16"), which would misformat the bar ("16G" vs "16.0G").
+  # LC_NUMERIC=C: found live (2026-08-26) that bash's printf %f rejects a
+  # period-decimal value ("13.5") on this fr_CH machine, expecting a
+  # comma instead - same class of locale bug as the LC_ALL=C precedent
+  # already forced in the awk calls elsewhere in this script.
+  MEM_USED=$(LC_NUMERIC=C printf "%.1fG" "$(jq -r '.mem_used_gb' "$METRICS_CACHE")")
+  MEM_TOTAL=$(LC_NUMERIC=C printf "%.1fG" "$(jq -r '.mem_total_gb' "$METRICS_CACHE")")
+  MEM_PCT="$(jq -r '.mem_pct' "$METRICS_CACHE")"
+  GOT_METRICS_CACHE=true
+fi
+
+if [ "$GOT_METRICS_CACHE" = false ]; then
+  if [ "$(uname -s)" = "Darwin" ]; then
+    # vm_stat instead of `top -l 1`: top always walks the full process
+    # table to build its summary line even with `-n 0` (display-row count
+    # only, not a scan-skip flag) - measured live (2026-08-25), under real
+    # load (30-50 concurrent Claude Code sessions on this machine): 5-9s
+    # real, 3.5-5s sys CPU per call. vm_stat reads kernel page counters
+    # directly (no per-process work at all): ~0.04s real, unmeasurably
+    # low CPU. "used" approximated as active+wired+compressed pages,
+    # matching top's PhysMem definition closely enough for a decorative
+    # bar (not exact - top's figure includes some additional accounting
+    # this skips).
+    MEM_TOTAL_BYTES=$(sysctl -n hw.memsize 2>/dev/null)
+    read -r MEM_USED MEM_TOTAL MEM_PCT <<< "$(LC_ALL=C vm_stat | awk -v totalb="$MEM_TOTAL_BYTES" '
+      NR==1 { for (i=1;i<=NF;i++) if ($i=="of") { pagesize=$(i+1)+0 }; next }
+      /^Pages active/ { active=$NF+0 }
+      /^Pages wired down/ { wired=$NF+0 }
+      /^Pages occupied by compressor/ { compressor=$NF+0 }
+      END {
+        usedG=(active+wired+compressor)*pagesize/1024/1024/1024
+        totalG=totalb/1024/1024/1024
+        pct=int(usedG/totalG*100+0.5)
+        printf "%.1fG %.1fG %d", usedG, totalG, pct
+      }')"
+  else
+    # Linux: /proc/meminfo, "used" = MemTotal - MemAvailable (matches `free`'s definition).
+    read -r MEM_USED MEM_TOTAL MEM_PCT <<< "$(LC_ALL=C awk '
+      /^MemTotal:/{total=$2} /^MemAvailable:/{avail=$2}
+      END{
+        usedG=(total-avail)/1024/1024; totalG=total/1024/1024
+        pct=int(usedG/totalG*100+0.5)
+        printf "%.1fG %.1fG %d", usedG, totalG, pct
+      }' /proc/meminfo)"
+  fi
 fi
 MEM_COLOR=$(sev_color "$MEM_PCT")
 
