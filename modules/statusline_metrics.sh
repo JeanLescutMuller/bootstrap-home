@@ -13,12 +13,27 @@ step "statusline metrics (glances poller)"
 BIN_NAME="statusline-glances-poll"
 BIN_PATH="$HOME/.local/bin/$BIN_NAME"
 
+# Pinned to the exact version verified against statusline-glances-poll.sh's
+# JSON parsing (2026-08-26) - deliberately NOT Debian's apt-packaged
+# glances (3.3.1.1 on bookworm, four major versions behind): confirmed
+# live that Debian's own version has no reliable venv/pip path to even
+# test its --stdout-json support without installing it for real first,
+# and the manpage for it doesn't clearly document the flag either. Same
+# pinned version on every machine sidesteps the question entirely.
+GLANCES_VERSION="4.5.6"
+
 if ! command -v glances >/dev/null 2>&1; then
     if [ "$INSTALL" = "true" ]; then
         if command -v brew >/dev/null 2>&1; then
             brew install glances >/dev/null 2>&1 && installed "glances (brew)" || fail "glances (brew install failed)"
         elif command -v apt-get >/dev/null 2>&1; then
-            sudo apt-get install -y glances >/dev/null 2>&1 && installed "glances (apt)" || fail "glances (apt install failed)"
+            if ! command -v pip3 >/dev/null 2>&1; then
+                sudo apt-get install -y python3-pip >/dev/null 2>&1 \
+                    || fail "python3-pip (apt install failed - needed for pip-installed glances)"
+            fi
+            pip3 install --user --break-system-packages -q "glances==$GLANCES_VERSION" \
+                && installed "glances $GLANCES_VERSION (pip --user)" \
+                || fail "glances (pip install failed)"
         else
             fail "glances (no brew or apt-get found - install manually)"
         fi
