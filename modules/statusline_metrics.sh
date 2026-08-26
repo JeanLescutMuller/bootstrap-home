@@ -28,6 +28,15 @@ if ! command -v glances >/dev/null 2>&1; then
             brew install glances >/dev/null 2>&1 && installed "glances (brew)" || fail "glances (brew install failed)"
         elif command -v apt-get >/dev/null 2>&1; then
             if ! command -v pip3 >/dev/null 2>&1; then
+                # `sudo -v` first, with its prompt left visible (unlike
+                # everything else here): confirmed live, 2026-08-26 - a
+                # `sudo apt-get ... 2>&1 >/dev/null` on the *next* line
+                # would have silently swallowed the password prompt too,
+                # making the script look hung with no visible cue at all.
+                # `sudo -v` alone just authenticates/caches credentials,
+                # so the following `sudo apt-get` line doesn't re-prompt.
+                echo "(sudo needed to install python3-pip - you may be prompted for your password)"
+                sudo -v || fail "sudo authentication failed"
                 sudo apt-get install -y python3-pip >/dev/null 2>&1 \
                     || fail "python3-pip (apt install failed - needed for pip-installed glances)"
             fi

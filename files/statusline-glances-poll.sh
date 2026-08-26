@@ -18,12 +18,14 @@
 set -euo pipefail
 
 # Schedulers (launchd, systemd, cron) never reliably inherit an
-# interactive shell's PATH - confirmed live, 2026-08-26: launchd's own
-# minimal PATH (/usr/bin:/bin:/usr/sbin:/sbin) doesn't include Homebrew's
-# /opt/homebrew/bin (Apple Silicon) or /usr/local/bin (Intel Mac / most
-# Linux installs), so `glances` silently failed with "command not found"
-# (exit 127) the first time launchd actually fired this on its own.
-PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
+# interactive shell's PATH - confirmed live, 2026-08-26, twice: launchd's
+# minimal PATH doesn't include Homebrew's /opt/homebrew/bin (Apple
+# Silicon), and separately, systemd --user's own default PATH doesn't
+# include ~/.local/bin (where `pip install --user` puts the glances
+# binary on Linux) - both silently failed with "command not found"
+# (exit 127) the first time their real scheduler fired this rather than
+# a shell with the full PATH already set up.
+PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
 
 CACHE_DIR="$HOME/.claude/statusline-caches"
 mkdir -p "$CACHE_DIR"
