@@ -57,9 +57,15 @@ GIT_PURPLE='\033[38;5;141m' # ahead/behind remote - local vs. shared history,
 # in this script rather than diluting it with an unrelated second use.
 
 sev_color() {
-  local pct=$1
+  # sev_color <pct> [yellow_threshold=70] - red is always >=90.
+  # Context window takes a lower yellow threshold (40) than everything
+  # else here: unlike rate limits/memory, the cost that matters isn't
+  # "how close to the hard cap" but "how much a large context costs to
+  # resend on every new message" - that cost is already meaningful well
+  # before 70%, so it should start warning sooner.
+  local pct=$1 yellow=${2:-70}
   if [ "$pct" -ge 90 ]; then echo "$SEV_RED"
-  elif [ "$pct" -ge 70 ]; then echo "$SEV_YELLOW"
+  elif [ "$pct" -ge "$yellow" ]; then echo "$SEV_YELLOW"
   else echo "$SEV_GREEN"; fi
 }
 
@@ -335,7 +341,7 @@ blocked_or_bar() {
   fi
 }
 
-CTX_COLOR=$(sev_color "$CTX_PCT")
+CTX_COLOR=$(sev_color "$CTX_PCT" 40)
 CTX_BAR=$(bar "$CTX_PCT" "$BAR_WIDTH" "$CTX_COLOR")
 CTX_STR="${CTX_COLOR}💬 ${RESET}[${CTX_BAR}] ${CTX_COLOR}${CTX_PCT}%${RESET}"
 
