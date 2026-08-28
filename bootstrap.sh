@@ -40,14 +40,33 @@ fi
 DOTFILES=(
     "vimrc:$HOME/.vimrc"
     "tmux.conf:$HOME/.tmux.conf"
-    "CLAUDE.md:$HOME/.claude/CLAUDE.md"
-    "dev_CLAUDE.md:$HOME/dev/CLAUDE.md"
+    "home_AGENTS.md:$HOME/AGENTS.md"
     "statusline-command.sh:$HOME/.claude/statusline-command.sh"
     "statusline-usage-fetch.sh:$HOME/.claude/statusline-usage-fetch.sh"
+    "codex-statusline-command.sh:$HOME/.codex/statusline-command.sh"
+    "statusline-cache.sh:$HOME/opt/bootstrap-home/statusline/lib/statusline-cache.sh"
+    "statusline-format.sh:$HOME/opt/bootstrap-home/statusline/lib/statusline-format.sh"
+    "statusline-refresh-metrics.sh:$HOME/opt/bootstrap-home/statusline/lib/statusline-refresh-metrics.sh"
+    "statusline-refresh-git-local.sh:$HOME/opt/bootstrap-home/statusline/lib/statusline-refresh-git-local.sh"
+    "statusline-refresh-git-remote.sh:$HOME/opt/bootstrap-home/statusline/lib/statusline-refresh-git-remote.sh"
     "skills/claude-config-ownership/SKILL.md:$HOME/.claude/skills/claude-config-ownership/SKILL.md"
     "skills/shell-scripting/SKILL.md:$HOME/.claude/skills/shell-scripting/SKILL.md"
     "skills/python-coding/SKILL.md:$HOME/.claude/skills/python-coding/SKILL.md"
+    "skills/claude-config-ownership/SKILL.md:$HOME/.agents/skills/claude-config-ownership/SKILL.md"
+    "skills/shell-scripting/SKILL.md:$HOME/.agents/skills/shell-scripting/SKILL.md"
+    "skills/python-coding/SKILL.md:$HOME/.agents/skills/python-coding/SKILL.md"
 )
+
+# Agent-specific compatibility names point to the shared canonical files.
+AGENT_INSTRUCTION_LINKS=(
+    "$HOME/AGENTS.md:$HOME/.claude/CLAUDE.md"
+    "$HOME/AGENTS.md:$HOME/.codex/AGENTS.md"
+)
+
+# The dev-wide instructions were merged into ~/AGENTS.md. Remove only the
+# exact file this project used to deploy and its matching compatibility link;
+# preserve anything customized or independently created at those paths.
+LEGACY_DEV_AGENTS_SHA256="2844c72ab7f1943c8e02e14b131dad11f9746e50586ee06d6e6a31e925b505c5"
 
 # Backs up $1 to a single non-timestamped "$1.bak" before it gets
 # overwritten, replacing whatever backup was already there. Deliberately
@@ -92,14 +111,61 @@ _deploy_dotfile() {
     fi
 }
 
+_deploy_instruction_link() {
+    local src="$1" link="$2"
+
+    if [ -L "$link" ] && [ "$(readlink "$link")" = "$src" ]; then
+        ok "$link"
+        return
+    fi
+
+    if [ "$INSTALL" = "false" ]; then
+        skip "$link"
+        return
+    fi
+
+    mkdir -p "$(dirname "$link")"
+    _backup_before_overwrite "$link"
+    [ -e "$link" ] || [ -L "$link" ] && rm "$link"
+    ln -s "$src" "$link"
+    installed "$link"
+}
+
+_migrate_legacy_dev_instructions() {
+    local agents="$HOME/dev/AGENTS.md"
+    local claude="$HOME/dev/CLAUDE.md"
+    local current_hash=""
+
+    if [ -f "$agents" ] && [ ! -L "$agents" ]; then
+        current_hash="$(_sha256 < "$agents")"
+    fi
+
+    if [ "$current_hash" != "$LEGACY_DEV_AGENTS_SHA256" ]; then
+        [ ! -e "$agents" ] && [ ! -L "$agents" ] && return
+        warn "legacy dev instructions were customized - preserving $agents and $claude"
+        return
+    fi
+
+    if [ "$INSTALL" = "false" ]; then
+        skip "legacy ~/dev agent instructions"
+        return
+    fi
+
+    _backup_before_overwrite "$agents"
+    rm "$agents"
+    if [ -L "$claude" ] && [ "$(readlink "$claude")" = "$agents" ]; then
+        rm "$claude"
+    fi
+    installed "merged ~/dev agent instructions into ~/AGENTS.md"
+}
+
 # Own binaries: real file under ~/opt/bootstrap-home/bin/, symlinked from
-# ~/.local/bin/ (per files/CLAUDE.md's rule that ~/.local/bin holds only
+# ~/.local/bin/ (per files/home_AGENTS.md's rule that ~/.local/bin holds only
 # symlinks into ~/opt/<project>/, never real files - same pattern as
 # claude-session-manager's csm/status or notify's own binary). Shape
 # mirrors DOTFILES: source name in files/, bin name on PATH.
 OWN_BINS=(
     "get_host_color.sh:get_host_color"
-    "statusline-glances-poll.sh:statusline-glances-poll"
 )
 
 _deploy_own_bin() {
@@ -216,6 +282,12 @@ for entry in "${DOTFILES[@]}"; do
     _deploy_dotfile "${entry%%:*}" "${entry#*:}"
 done
 
+for entry in "${AGENT_INSTRUCTION_LINKS[@]}"; do
+    _deploy_instruction_link "${entry%%:*}" "${entry#*:}"
+done
+
+_migrate_legacy_dev_instructions
+
 step "own binaries"
 for entry in "${OWN_BINS[@]}"; do
     _deploy_own_bin "${entry%%:*}" "${entry#*:}"
@@ -237,7 +309,7 @@ case "$(basename "$SHELL")" in
 esac
 
 # --- Modules: real logic (branching, external calls) lives here. ---
-MODULES=(dev_layout gitconfig claude_config tools)
+MODULES=(dev_layout statusline_cache gitconfig claude_config codex_config tools)
 
 TARGET="${1:-}"
 if [ -n "$TARGET" ]; then

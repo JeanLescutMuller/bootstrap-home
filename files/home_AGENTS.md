@@ -1,5 +1,15 @@
 # General conventions (MacBook + Debian VM)
 
+## Communication: optimize for speed
+
+The user has limited time. Make responses easy to scan and act on:
+
+- Keep answers short and lead with the result or next action.
+- Prefer a compact visual format, such as a table, when it communicates the
+  information more clearly than prose.
+- When providing commands or code to execute, consolidate them into a single
+  copy-pasteable code block whenever practical.
+
 - `~/dev/` — all source repos, flat (no category subfolders).
 - `~/opt/<project>/` — deployed/installed runtime copy (what a launchd job / systemd unit / cron points at), separate from the git source in `~/dev/<project>`. Everything a project owns lives here as a real file — code, logs, state, and the scheduler/trigger definition itself (LaunchAgent `.plist`, systemd `.service`/`.timer`). The OS-mandated location (`~/Library/LaunchAgents/`, `~/.config/systemd/user/`) holds only a symlink pointing back into `~/opt/<project>/` — never a real file there.
 - `~/.local/bin/` — symlinks into `~/opt/<project>/`, never real files. Same symlink-only rule as the scheduler files above.
@@ -17,4 +27,12 @@ Development (writing/editing code) happens on the MacBook only. The Debian VM, a
 
 # Monitoring
 
-- **CPU/memory**: `glances` (installed via `bootstrap-home`'s `statusline_metrics` module) samples system CPU/memory every 30s into `~/.claude/statusline-caches/system-metrics.json`, read by the Claude Code statusline instead of it computing memory itself on every render. See `bootstrap-home/files/statusline-command.md` for the full rationale.
+- **Statusline shared data**: Claude and Codex use the lazy cache under
+  `~/opt/bootstrap-home/statusline/state`. A renderer reads cached hostname,
+  Git, quota, and memory data; when dynamic data is stale, only the renderer
+  that atomically acquires its shared lock performs the bounded refresh. Other
+  sessions immediately keep displaying the previous value.
+
+# Scheduling recurring jobs
+
+Standard pattern for any recurring background job under `~/dev/`: a LaunchAgent (macOS, `~/Library/LaunchAgents/com.<x>.plist`) or a systemd `--user` service+timer (Linux, `~/.config/systemd/user/com.<x>.{service,timer}`), with `loginctl enable-linger` (best-effort) on Linux so the user unit runs without an active login session.
