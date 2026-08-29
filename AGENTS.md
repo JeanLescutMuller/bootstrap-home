@@ -22,6 +22,20 @@ scope from the request, and ask when it remains ambiguous.
 
 See `TODO.md` for deliberately postponed project improvements.
 
+## Codex patch builds
+
+Codex patch/build/deploy work must be encoded as one deterministic, idempotent,
+quiet shell script before running it. The script must capture verbose compiler
+output in a log and print only milestones plus the final result. Never drive a
+build through repeated tool polling or stream compiler output through the model:
+this wastes context and quota. A single long-running scripted invocation is the
+normal path; use the model only to diagnose its final failure summary.
+
+Treat this as a hard quota-safety rule, not a preference. Do not spend LLM tokens
+manually orchestrating any reproducible install or build; improve and run the
+single installer instead. Codex status-line patching is owned by
+`scripts/install-codex-statusline-patch.sh` and the `codex_patch` module.
+
 ## Statusline cache design
 
 Shared Claude/Codex quota caches use a 60-second TTL. Keep provider-specific

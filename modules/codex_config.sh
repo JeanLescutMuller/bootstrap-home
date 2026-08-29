@@ -1,6 +1,6 @@
 #!/bin/bash
 # Owns only the Codex TUI status-line keys in ~/.codex/config.toml, including
-# the command table supported by this project's version-pinned Codex patch.
+# the transitional command table supported by the currently deployed patch.
 step "codex config"
 
 CONFIG="$HOME/.codex/config.toml"
@@ -23,7 +23,7 @@ desired_path = Path(os.environ["CODEX_DESIRED"])
 install = os.environ["INSTALL"] == "true"
 
 # Keep the source template portable across macOS and Linux while writing the
-# absolute path required by Codex's process launcher on the target machine.
+# absolute path required by the currently deployed Codex process launcher.
 home_toml = str(Path.home()).replace("\\", "\\\\").replace('"', '\\"')
 desired_text = desired_path.read_text().replace("__HOME__", home_toml)
 desired = tomllib.loads(desired_text)["tui"]

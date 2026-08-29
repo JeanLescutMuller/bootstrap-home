@@ -17,6 +17,8 @@ Bootstrap deploys shared code and state under ~/opt/bootstrap-home/statusline/:
     state/git/cwd/.../local      local Git snapshot for that cwd
     state/git/cwd/.../remote     remote Git snapshot for that cwd
     locks/                       atomic refresh locks
+    logs/statusline.log          bounded shared refresh/write event log
+    logs/statusline.log.1        previous log after 1 MiB rotation
 
 Dynamic value files use ASCII file-separator delimiters and have a sibling
 .timestamp containing their refresh epoch. Renderers read both with Bash
@@ -35,6 +37,12 @@ built-ins. Only the provider JSON payload requires jq.
 There is no polling daemon or scheduler. Work happens only for data currently
 being displayed, and sessions share machine-, provider-, and cwd-scoped
 results.
+
+The shared log records cache refresh/write events for both providers, including
+failure exit codes, safe stderr, and stale-cache age. It deliberately does not
+log every render: at 30 sessions and a four-second interval that would create
+roughly 650,000 lines per day and add avoidable I/O. Epoch timestamps keep the
+hot-path logger independent of another `date` subprocess.
 
 | Cache | Scope | TTL | Refresh timeout |
 |---|---|---:|---:|

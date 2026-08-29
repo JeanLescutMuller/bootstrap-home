@@ -7,16 +7,22 @@ set -uo pipefail
 separator=$'\034'
 token=""
 
+fail_fetch() {
+    printf 'Claude quota refresh: %s\n' "$1" >&2
+    exit 1
+}
+
 if [ "$(uname -s)" = "Darwin" ]; then
-    credentials="$(security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null)" || exit 1
+    credentials="$(security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null)" \
+        || fail_fetch "credentials not found in macOS Keychain"
 else
     credentials_file="$HOME/.claude/.credentials.json"
-    [ -f "$credentials_file" ] || exit 1
+    [ -f "$credentials_file" ] || fail_fetch "credentials file not found"
     credentials="$(<"$credentials_file")"
 fi
 
 token="$(printf '%s' "$credentials" | jq -r '.claudeAiOauth.accessToken // empty' 2>/dev/null)"
-[ -n "$token" ] || exit 1
+[ -n "$token" ] || fail_fetch "OAuth access token missing from credentials"
 
 curl --fail --silent --show-error --max-time 4 \
     -H "Authorization: Bearer $token" \
@@ -25,7 +31,13 @@ curl --fail --silent --show-error --max-time 4 \
     | jq -jr --arg separator "$separator" '
         def epoch:
             if . == null then ""
-            else fromdateiso8601 | tostring
+            # jq only accepts whole-second UTC timestamps ending in Z. The API
+            # also emits equivalent fractional-second `+00:00` timestamps.
+            else sub("\\.[0-9]+\\+00:00$"; "Z")
+                | sub("\\+00:00$"; "Z")
+                | sub("\\.[0-9]+Z$"; "Z")
+                | fromdateiso8601
+                | tostring
             end;
         [
             ((.five_hour.utilization // 0) | round | tostring),

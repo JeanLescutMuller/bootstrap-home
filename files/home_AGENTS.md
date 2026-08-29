@@ -36,3 +36,19 @@ Development (writing/editing code) happens on the MacBook only. The Debian VM, a
 # Scheduling recurring jobs
 
 Standard pattern for any recurring background job under `~/dev/`: a LaunchAgent (macOS, `~/Library/LaunchAgents/com.<x>.plist`) or a systemd `--user` service+timer (Linux, `~/.config/systemd/user/com.<x>.{service,timer}`), with `loginctl enable-linger` (best-effort) on Linux so the user unit runs without an active login session.
+
+# Keeping this file in sync
+
+When modifying this file, always consider modifying the bootstrap template at
+`~/dev/bootstrap-home/files/home_AGENTS.md` too, so the change persists across
+machines (this file is the deployed copy; that one is the source template).
+
+# Token-conscious execution
+
+The user of this machine has very few tokens available. For any job that might
+be long-running or will likely be repeated (building a binary, testing a whole
+project, deploying or installing something, etc.), always prefer writing a
+reusable bash script and executing it with stdout/stderr redirected to files,
+rather than streaming output through the model or driving the process step by
+step via the LLM. Inspect the log files afterward only as needed (e.g. tail on
+failure). Minimize token consumption wherever possible.

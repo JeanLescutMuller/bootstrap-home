@@ -10,6 +10,7 @@ SEPARATOR=$'\034'
 
 if [ "$INSTALL" = "false" ]; then
     if [ -s "$STATE/static/hostname" ] && [ -s "$STATE/static/host-color" ] \
+        && [ -d "$RUNTIME/logs" ] \
         && [ ! -e "$OLD_CACHE" ] \
         && [ ! -d "$STATE/git/repositories" ] \
         && [ ! -e "$HOME/Library/LaunchAgents/com.bootstrap-home.statusline-glances-poll.plist" ]; then
@@ -38,6 +39,7 @@ else
 fi
 if [ "$current_hostname" = "$hostname_short" ] \
     && [ "$current_host_color" = "$host_color" ] \
+    && [ -d "$RUNTIME/logs" ] \
     && [ ! -e "$OLD_CACHE" ] \
     && [ ! -d "$STATE/git/repositories" ] \
     && [ "$legacy_scheduler" = false ] \
@@ -48,7 +50,7 @@ if [ "$current_hostname" = "$hostname_short" ] \
 fi
 
 mkdir -p "$STATE/static" "$STATE/system" "$STATE/providers" \
-    "$RUNTIME/locks" "$LEGACY"
+    "$RUNTIME/locks" "$RUNTIME/logs" "$LEGACY"
 
 if [ -d "$STATE/git/repositories" ]; then
     legacy_git="$LEGACY/git-repository-cache-layout"

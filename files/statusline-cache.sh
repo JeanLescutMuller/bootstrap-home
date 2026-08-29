@@ -4,11 +4,32 @@
 STATUSLINE_RUNTIME_DIR="${STATUSLINE_RUNTIME_DIR:-$HOME/opt/bootstrap-home/statusline}"
 STATUSLINE_STATE_DIR="$STATUSLINE_RUNTIME_DIR/state"
 STATUSLINE_LOCK_DIR="$STATUSLINE_RUNTIME_DIR/locks"
+STATUSLINE_LOG_DIR="$STATUSLINE_RUNTIME_DIR/logs"
+STATUSLINE_LOG_FILE="$STATUSLINE_LOG_DIR/statusline.log"
+STATUSLINE_LOG_MAX_BYTES="${STATUSLINE_LOG_MAX_BYTES:-1048576}"
 STATUSLINE_FIELD_SEPARATOR=$'\034'
 
 statusline_cache_init() {
-    [ -d "$STATUSLINE_STATE_DIR" ] && [ -d "$STATUSLINE_LOCK_DIR" ] && return
-    mkdir -p "$STATUSLINE_STATE_DIR" "$STATUSLINE_LOCK_DIR"
+    [ -d "$STATUSLINE_STATE_DIR" ] && [ -d "$STATUSLINE_LOCK_DIR" ] \
+        && [ -d "$STATUSLINE_LOG_DIR" ] && return
+    mkdir -p "$STATUSLINE_STATE_DIR" "$STATUSLINE_LOCK_DIR" "$STATUSLINE_LOG_DIR"
+}
+
+# Log cache activity, not every render. Per-render logging would produce about
+# 650k lines/day at 30 sessions and a four-second Codex refresh interval.
+statusline_log_event() {
+    local now="$1" event="$2" details="${3:-}" size=0
+    mkdir -p "$STATUSLINE_LOG_DIR"
+    if [ -f "$STATUSLINE_LOG_FILE" ]; then
+        size="$(stat -f %z "$STATUSLINE_LOG_FILE" 2>/dev/null \
+            || stat -c %s "$STATUSLINE_LOG_FILE" 2>/dev/null \
+            || printf '0')"
+    fi
+    if [[ "$size" =~ ^[0-9]+$ ]] && [ "$size" -ge "$STATUSLINE_LOG_MAX_BYTES" ]; then
+        mv "$STATUSLINE_LOG_FILE" "${STATUSLINE_LOG_FILE}.1" 2>/dev/null || true
+    fi
+    printf '%s event=%s%s%s\n' "$now" "$event" "${details:+ }" "$details" \
+        >> "$STATUSLINE_LOG_FILE" 2>/dev/null || true
 }
 
 statusline_cache_is_fresh() {
@@ -63,7 +84,8 @@ statusline_refresh_if_stale() {
     local cache_file="$1" ttl="$2" lock_key="$3" lock_stale_after="$4"
     local timeout_seconds="$5" now="$6"
     shift 6
-    local cache_dir tmp timestamp_tmp attempted_tmp attempted_at="" lock_acquired=false
+    local cache_dir tmp error_tmp timestamp_tmp attempted_tmp attempted_at=""
+    local cache_timestamp="" stale_age="unknown" refresh_exit=0 error="" lock_acquired=false
 
     statusline_cache_is_fresh "$cache_file" "$ttl" "$now" && return 0
     if [ -f "${cache_file}.attempted" ]; then
@@ -86,6 +108,7 @@ statusline_refresh_if_stale() {
     rm -f "${cache_file}.tmp."* "${cache_file}.timestamp.tmp."* \
         "${cache_file}.attempted.tmp."*
     tmp="${cache_file}.tmp.$$-${RANDOM:-0}"
+    error_tmp="${cache_file}.error.tmp.$$-${RANDOM:-0}"
     timestamp_tmp="${cache_file}.timestamp.tmp.$$-${RANDOM:-0}"
     attempted_tmp="${cache_file}.attempted.tmp.$$-${RANDOM:-0}"
     printf '%s\n' "$now" > "$attempted_tmp"
@@ -113,15 +136,32 @@ statusline_refresh_if_stale() {
             waitpid $pid, 0;
             alarm 0;
             exit($? == -1 ? 127 : $? >> 8);
-        ' "$timeout_seconds" "$@" > "$tmp" 2>/dev/null \
-        && [ -s "$tmp" ]; then
+        ' "$timeout_seconds" "$@" > "$tmp" 2> "$error_tmp"; then
+        refresh_exit=0
+    else
+        refresh_exit=$?
+    fi
+
+    if [ "$refresh_exit" -eq 0 ] && [ -s "$tmp" ]; then
         mv "$tmp" "$cache_file"
         printf '%s\n' "$now" > "$timestamp_tmp"
         mv "$timestamp_tmp" "${cache_file}.timestamp"
         rm -f "${cache_file}.attempted"
+        statusline_log_event "$now" refresh_success "key=$lock_key"
     else
+        [ "$refresh_exit" -eq 0 ] && refresh_exit=65
+        if [ -f "${cache_file}.timestamp" ]; then
+            IFS= read -r cache_timestamp < "${cache_file}.timestamp"
+            [[ "$cache_timestamp" =~ ^[0-9]+$ ]] && stale_age="$((now - cache_timestamp))s"
+        fi
+        if [ -s "$error_tmp" ]; then
+            error="$(LC_ALL=C tr '\n\t' '  ' < "$error_tmp" | cut -c 1-300)"
+        fi
+        statusline_log_event "$now" refresh_failed \
+            "key=$lock_key exit=$refresh_exit stale_age=${stale_age}${error:+ error=$error}"
         rm -f "$tmp" "$timestamp_tmp"
     fi
+    rm -f "$error_tmp"
 
     statusline_lock_release
 }
@@ -147,6 +187,7 @@ statusline_write_values_if_stale() {
     mv "$tmp" "$cache_file"
     printf '%s\n' "$now" > "$timestamp_tmp"
     mv "$timestamp_tmp" "${cache_file}.timestamp"
+    statusline_log_event "$now" payload_cache_write "key=$lock_key"
     statusline_lock_release
 }
 
