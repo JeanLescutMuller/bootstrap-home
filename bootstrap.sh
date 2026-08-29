@@ -41,14 +41,6 @@ DOTFILES=(
     "vimrc:$HOME/.vimrc"
     "tmux.conf:$HOME/.tmux.conf"
     "home_AGENTS.md:$HOME/AGENTS.md"
-    "statusline-command.sh:$HOME/.claude/statusline-command.sh"
-    "statusline-usage-fetch.sh:$HOME/.claude/statusline-usage-fetch.sh"
-    "codex-statusline-command.sh:$HOME/.codex/statusline-command.sh"
-    "statusline-cache.sh:$HOME/opt/bootstrap-home/statusline/lib/statusline-cache.sh"
-    "statusline-format.sh:$HOME/opt/bootstrap-home/statusline/lib/statusline-format.sh"
-    "statusline-refresh-metrics.sh:$HOME/opt/bootstrap-home/statusline/lib/statusline-refresh-metrics.sh"
-    "statusline-refresh-git-local.sh:$HOME/opt/bootstrap-home/statusline/lib/statusline-refresh-git-local.sh"
-    "statusline-refresh-git-remote.sh:$HOME/opt/bootstrap-home/statusline/lib/statusline-refresh-git-remote.sh"
     "skills/claude-config-ownership/SKILL.md:$HOME/.claude/skills/claude-config-ownership/SKILL.md"
     "skills/shell-scripting/SKILL.md:$HOME/.claude/skills/shell-scripting/SKILL.md"
     "skills/python-coding/SKILL.md:$HOME/.claude/skills/python-coding/SKILL.md"
@@ -309,7 +301,7 @@ case "$(basename "$SHELL")" in
 esac
 
 # --- Modules: real logic (branching, external calls) lives here. ---
-MODULES=(dev_layout statusline_cache gitconfig claude_config codex_patch codex_config tools)
+MODULES=(dev_layout gitconfig claude_config tools)
 
 TARGET="${1:-}"
 if [ -n "$TARGET" ]; then

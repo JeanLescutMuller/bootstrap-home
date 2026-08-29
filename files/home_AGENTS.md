@@ -28,9 +28,10 @@ Development (writing/editing code) happens on the MacBook only. The Debian VM, a
 # Monitoring
 
 - **Statusline shared data**: Claude and Codex use the lazy cache under
-  `~/opt/bootstrap-home/statusline/state`. A renderer reads cached hostname,
-  Git, quota, and memory data; when dynamic data is stale, only the renderer
-  that atomically acquires its shared lock performs the bounded refresh. Other
+  `~/opt/agent-statusline/state` (deployed by the independent `agent-statusline`
+  project, not bootstrap-home). A renderer reads cached hostname, Git, quota,
+  and memory data; when dynamic data is stale, only the renderer that
+  atomically acquires its shared lock performs the bounded refresh. Other
   sessions immediately keep displaying the previous value.
 
 # Scheduling recurring jobs

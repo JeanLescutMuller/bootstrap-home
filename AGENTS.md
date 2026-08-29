@@ -22,22 +22,17 @@ scope from the request, and ask when it remains ambiguous.
 
 See `TODO.md` for deliberately postponed project improvements.
 
-## Codex patch builds
+## Statusline and Codex patch builds
 
-Codex patch/build/deploy work must be encoded as one deterministic, idempotent,
-quiet shell script before running it. The script must capture verbose compiler
-output in a log and print only milestones plus the final result. Never drive a
-build through repeated tool polling or stream compiler output through the model:
-this wastes context and quota. A single long-running scripted invocation is the
-normal path; use the model only to diagnose its final failure summary.
+The shared Claude/Codex statusline renderer, its lazy cache library, and the
+Codex status-line-command binary patch all moved to the independent
+[`agent-statusline`](https://github.com/JeanLescutMuller/agent-statusline)
+project. `modules/tools.sh` clones and deploys it the same way it deploys
+`claude-session-manager` and `notify`; bootstrap-home itself no longer owns
+any of that logic or touches `~/.codex/config.toml`.
 
-Treat this as a hard quota-safety rule, not a preference. Do not spend LLM tokens
-manually orchestrating any reproducible install or build; improve and run the
-single installer instead. Codex status-line patching is owned by
-`scripts/install-codex-statusline-patch.sh` and the `codex_patch` module.
-
-## Statusline cache design
-
-Shared Claude/Codex quota caches use a 60-second TTL. Keep provider-specific
-refresh work lazy: a renderer refreshes stale data only after acquiring the
-shared lock, otherwise it displays the stale value and continues.
+That project's own build-script convention still applies wherever it's
+developed: Codex patch/build/deploy work is encoded as one deterministic,
+idempotent, quiet shell script, with verbose compiler output captured in a log
+and only milestones plus the final result printed — never driven through
+repeated tool polling or streamed through the model.
