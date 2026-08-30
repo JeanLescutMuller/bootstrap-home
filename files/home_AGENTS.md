@@ -29,10 +29,21 @@ Development (writing/editing code) happens on the MacBook only. The Debian VM, a
 
 - **Statusline shared data**: Claude and Codex use the lazy cache under
   `~/opt/agent-statusline/state` (deployed by the independent `agent-statusline`
-  project, not bootstrap-home). A renderer reads cached hostname, Git, quota,
-  and memory data; when dynamic data is stale, only the renderer that
-  atomically acquires its shared lock performs the bounded refresh. Other
-  sessions immediately keep displaying the previous value.
+  project, not bootstrap-home). A renderer reads cached hostname, Git, and
+  memory data; when dynamic data is stale, only the renderer that atomically
+  acquires its shared lock performs the bounded refresh. Other sessions
+  immediately keep displaying the previous value. Claude quota is the one
+  exception (changed 2026-08-30): `agent-statusline` no longer polls
+  Anthropic's usage endpoint itself - that used to duplicate
+  `agent-quota-tracker`'s own fixed-cadence poll of the same endpoint and
+  caused 429s during busy multi-session hours. It now just reads the latest
+  row from `~/opt/agent-quota-tracker/data/utilization-log.jsonl`.
+  `agent-quota-tracker` polls that endpoint on a dynamic cadence: roughly
+  every 60s while `agent-statusline` reports - via a heartbeat file it
+  touches on every render - that a Claude Code statusline is live, backing
+  off to roughly every 5 minutes once idle. Codex quota is unaffected: it's
+  never fetched over the network at all, `agent-statusline` just relays
+  whatever rate-limit data the live Codex CLI session hands it on stdin.
 
 # Scheduling recurring jobs
 
