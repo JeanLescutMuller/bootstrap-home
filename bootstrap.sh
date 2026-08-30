@@ -33,10 +33,6 @@ fi
 # static content. Its output is concatenated directly into the managed
 # block in ~/.zshrc or ~/.bashrc instead (see "shell rc managed block"
 # below).
-#
-# statusline-command.md is NOT in this list either - it's reference
-# documentation for statusline-command.sh, not something meant to land
-# in ~/.claude/.
 DOTFILES=(
     "vimrc:$HOME/.vimrc"
     "tmux.conf:$HOME/.tmux.conf"
