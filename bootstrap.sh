@@ -40,9 +40,11 @@ DOTFILES=(
     "skills/claude-config-ownership/SKILL.md:$HOME/.claude/skills/claude-config-ownership/SKILL.md"
     "skills/shell-scripting/SKILL.md:$HOME/.claude/skills/shell-scripting/SKILL.md"
     "skills/python-coding/SKILL.md:$HOME/.claude/skills/python-coding/SKILL.md"
+    "skills/jupyter-notebooks/SKILL.md:$HOME/.claude/skills/jupyter-notebooks/SKILL.md"
     "skills/claude-config-ownership/SKILL.md:$HOME/.agents/skills/claude-config-ownership/SKILL.md"
     "skills/shell-scripting/SKILL.md:$HOME/.agents/skills/shell-scripting/SKILL.md"
     "skills/python-coding/SKILL.md:$HOME/.agents/skills/python-coding/SKILL.md"
+    "skills/jupyter-notebooks/SKILL.md:$HOME/.agents/skills/jupyter-notebooks/SKILL.md"
 )
 
 # Agent-specific compatibility names point to the shared canonical files.
