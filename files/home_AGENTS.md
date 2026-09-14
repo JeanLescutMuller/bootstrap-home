@@ -11,7 +11,7 @@ The user has limited time. Make responses easy to scan and act on:
   copy-pasteable code block whenever practical.
 
 - `~/dev/` — all source repos, flat (no category subfolders).
-- `~/opt/<project>/` — deployed/installed runtime copy (what a launchd job / systemd unit / cron points at), separate from the git source in `~/dev/<project>`. Everything a project owns lives here as a real file — code, logs, state, and the scheduler/trigger definition itself (LaunchAgent `.plist`, systemd `.service`/`.timer`). The OS-mandated location (`~/Library/LaunchAgents/`, `~/.config/systemd/user/`) holds only a symlink pointing back into `~/opt/<project>/` — never a real file there.
+- `~/opt/<project>/` — deployed **and scheduled** runtime copy: what a launchd job / systemd unit / cron actually points at, plus the log/state/data it produces. Separate from the git source in `~/dev/<project>`. Everything that scheduled thing owns lives here as a real file — code, logs, state, and the scheduler/trigger definition itself (LaunchAgent `.plist`, systemd `.service`/`.timer`). The OS-mandated location (`~/Library/LaunchAgents/`, `~/.config/systemd/user/`) holds only a symlink pointing back into `~/opt/<project>/` — never a real file there. Ad-hoc, run-by-hand tooling (a one-off script, exploratory analysis, a recompute/migration helper) stays in `~/dev/<project>` and runs from there, even when it reads or writes that project's live `~/opt/` state — don't duplicate it into `~/opt/` just because it touches production data. `~/opt/` is for what a scheduler runs unattended, not for anything a human runs by hand.
 - `~/.local/bin/` — symlinks into `~/opt/<project>/`, never real files. Same symlink-only rule as the scheduler files above.
 - `~/dev/<x>` folder name must match the real GitHub repo name (check `git remote -v`, don't assume) — a drifted `~/opt/` copy name doesn't override this.
 - Never leave the shell's working directory changed after a spontaneous `cd` — change back before finishing, or ask first. The statusline's git-status segment reads the shell's live cwd, so a stray `cd` breaks it for the rest of the session, not just that command.
@@ -32,18 +32,20 @@ Development (writing/editing code) happens on the MacBook only. The Debian VM, a
   project, not bootstrap-home). A renderer reads cached hostname, Git, and
   memory data; when dynamic data is stale, only the renderer that atomically
   acquires its shared lock performs the bounded refresh. Other sessions
-  immediately keep displaying the previous value. Claude quota is the one
-  exception (changed 2026-08-30): `agent-statusline` no longer polls
-  Anthropic's usage endpoint itself - that used to duplicate
-  `agent-quota-tracker`'s own fixed-cadence poll of the same endpoint and
-  caused 429s during busy multi-session hours. It now just reads the latest
-  row from `~/opt/agent-quota-tracker/data/utilization-log.jsonl`.
-  `agent-quota-tracker` polls that endpoint on a dynamic cadence: roughly
-  every 60s while `agent-statusline` reports - via a heartbeat file it
-  touches on every render - that a Claude Code statusline is live, backing
-  off to roughly every 5 minutes once idle. Codex quota is unaffected: it's
-  never fetched over the network at all, `agent-statusline` just relays
-  whatever rate-limit data the live Codex CLI session hands it on stdin.
+  immediately keep displaying the previous value. Quota tracking (both
+  Claude and Codex) lives entirely inside `agent-statusline` now - the
+  former separate `agent-quota-tracker` project was folded into its repo on
+  2026-08-31 and its live deploy fully decommissioned on 2026-09-13 (nothing
+  under `~/opt/agent-quota-tracker/` exists anymore). Claude's primary quota
+  path is free: every Claude Code render already carries live `rate_limits`
+  on its own `/v1/messages` responses, pushed straight into
+  `agent-statusline`'s quota log with no network call of its own; a
+  LaunchAgent-scheduled poller is only a fallback for the one gap that push
+  path can't cover (a session that hasn't sent its first message yet, or a
+  machine-wide idle stretch with no statusline rendering anywhere). Codex
+  has no equivalent per-render push, so it relies on its own scheduled
+  poller plus reading Codex's local session files directly. See
+  `agent-statusline`'s own README for the full mechanism.
 
 # Scheduling recurring jobs
 
