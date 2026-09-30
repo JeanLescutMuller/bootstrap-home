@@ -9,6 +9,7 @@ No single tool owns this whole file — each owner manages specific keys and lea
 
 - `respondToBashCommands`, `theme`, `statusLine`, `cleanupPeriodDays` — owned by `bootstrap-home` (`modules/claude_config.sh`)
 - `hooks` — owned by `claude-session-manager`'s own `install.sh`
+- `env` → `CLAUDE_CODE_ENABLE_TELEMETRY`, `OTEL_LOGS_EXPORTER`, `OTEL_METRICS_EXPORTER`, `OTEL_EXPORTER_OTLP_PROTOCOL`, `OTEL_EXPORTER_OTLP_ENDPOINT` only — owned by `agent-statusline`'s own `install.sh` (`src/telemetry/merge_claude_env.py`); other `env` keys have no owner
 - `enabledPlugins`, `extraKnownMarketplaces` — owned by `notify`'s own `install.sh`
 
 Don't hand-edit a key outside the tool that owns it. Fix it in that tool's install/config script instead, so the fix survives the next bootstrap run instead of being silently overwritten.
