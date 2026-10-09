@@ -24,7 +24,17 @@ The user's to-do list for life is **Todoist** (Free plan). Gmail, Calendar and C
 - **Due date** when a real date is known (appointment, follow-up). Date only, no time, unless the user asks.
 - **Priority**: P1 = today or there are consequences · P2 = this week · P3 = soon · P4 = someday.
 - **Agent task** → add label `agent`. No exception. The user's widget filter "My day" = `(today | overdue) & !@agent` hides them; filter "Agents" = `@agent` lists them.
-- **Which agent** → also add the model label: `claude` (coding, anything technical) or `chatgpt` (admin, Gmail-type work). Only `agent` with no model label = any agent may take it. Pick up only tasks labelled with your own model or with no model label. The user may reassign by swapping the label.
+- **Which agent** → also add the model label, by default from the table below. Only `agent` with no model label = any agent may take it. Pick up only tasks labelled with your own model or with no model label. The user may reassign by swapping the label.
+
+| Area / stream | Model label | Typical work |
+|---|---|---|
+| Administrative (all streams) | `chatgpt` | read letters, draft replies, check deadlines |
+| Health (all streams) | `chatgpt` | research, questions for the doctor, compare offers |
+| Home, Others | `chatgpt` | product research, comparisons |
+| Robotics: Swiss Robotics Association, Swiss Robotics Day | `chatgpt` | pitch, who to meet, follow-ups |
+| Robotics - Startup: **story** and names | `chatgpt` | writing |
+| Robotics - Startup: **domain and website** | `claude` | anything technical, code |
+| Any area: **linking** (Gmail labels, calendar titles/colours, `Stream:` lines) | `claude` | ChatGPT's Gmail/Calendar access is read-only; Claude writes via `gws` |
 - **Description** (always, the user reads it on the phone), in this order:
 
 ```
