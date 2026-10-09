@@ -35,8 +35,8 @@ Everything an agent or a human may need about how the code works that is too lon
 
 | FAIL | WARN |
 |---|---|
-| `CLAUDE.md` missing, a real file, pointing elsewhere, or not git mode `120000` | `AGENTS.md` over 400 words, or its loaded chain over 1,900 |
-| `AGENTS.md` over 600 words | no README beside an `AGENTS.md`; a `CLAUDE.md` with no `AGENTS.md` |
+| `CLAUDE.md` missing, a real file, pointing elsewhere, or not git mode `120000` | `AGENTS.md` over 400 words, or its loaded chain over 1,900 (`## Vocabulary` sections are not counted) |
+| `AGENTS.md` over 600 words | no README beside an `AGENTS.md`; a `CLAUDE.md` with no `AGENTS.md`; a root `AGENTS.md` with no `## Vocabulary` table |
 | `README.html` without a `README.md` stub | a README line that looks like a rule or a tunable number |
 | a `README.md` inside a `doc/` folder | a `TODO.md` keeping done items |
 | a broken relative Markdown link | |

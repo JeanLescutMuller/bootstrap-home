@@ -29,6 +29,12 @@ else
         -o -name __pycache__ -o -name .ipynb_checkpoints \) -prune -o \( -type f -o -type l \) -print > "$ALL_FILES"
 fi
 
+# Words of an AGENTS.md, not counting its "## Vocabulary" section: the
+# vocabulary must never be pushed out by budget pressure.
+budget_words() {
+    awk '/^## /{ v = ($0 ~ /^## Vocabulary/) } !v' "$1" | wc -w | tr -d ' '
+}
+
 # Every listed file whose basename matches the regex $1.
 find_named() {
     grep -E "/$1\$" "$ALL_FILES"
@@ -50,7 +56,11 @@ strip_fences() {
         }' "$1"
 }
 
-[ -f "$ROOT/AGENTS.md" ] || warn "$ROOT/." "no AGENTS.md at the project root"
+if [ ! -f "$ROOT/AGENTS.md" ]; then
+    warn "$ROOT/." "no AGENTS.md at the project root"
+elif ! grep -q '^## Vocabulary' "$ROOT/AGENTS.md"; then
+    warn "$ROOT/AGENTS.md" "no '## Vocabulary' table — the project's words belong here"
+fi
 
 # --- AGENTS.md: symlink, budgets, README beside it ---
 while IFS= read -r agents; do
@@ -67,17 +77,17 @@ while IFS= read -r agents; do
         [ -n "$mode" ] && [ "$mode" != "120000" ] && fail "$claude" "git mode $mode, must be 120000 (a symlink)"
     fi
 
-    words="$(wc -w < "$agents" | tr -d ' ')"
+    words="$(budget_words "$agents")"
     if [ "$words" -gt "$AGENTS_FAIL_WORDS" ]; then
         fail "$agents" "$words words (> $AGENTS_FAIL_WORDS): move explanations to doc/ or TODO.md"
     elif [ "$words" -gt "$AGENTS_WARN_WORDS" ]; then
-        warn "$agents" "$words words (aim ≤ $AGENTS_WARN_WORDS)"
+        warn "$agents" "$words words, not counting ## Vocabulary (aim ≤ $AGENTS_WARN_WORDS)"
     fi
 
     chain=0
     p="$dir"
     while :; do
-        [ -f "$p/AGENTS.md" ] && chain=$((chain + $(wc -w < "$p/AGENTS.md")))
+        [ -f "$p/AGENTS.md" ] && chain=$((chain + $(budget_words "$p/AGENTS.md")))
         { [ "$p" = "$ROOT" ] || [ "$p" = "/" ]; } && break
         p="$(dirname "$p")"
     done

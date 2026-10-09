@@ -36,7 +36,7 @@ Examples: `~/dev/agent-auto-resume/CONSIDERATIONS.md` (15 themes, "lists no desi
 **Test: would the user notice if it were missing?** A requirement is a benefit for whoever uses the thing — the end user, or the developer using the tool — never a mechanism.
 
 - Opens with the **goal** in the user's own words, in the first person if the user wrote it that way.
-- A **vocabulary table** if the requirements need words the reader may not know.
+- **No vocabulary table of its own**: new words go into the `## Vocabulary` table of the root `AGENTS.md` (create it now if the project has none), and this file uses them.
 - Requirements numbered `R1`, `R2`…, grouped under user-facing headings ("When a job runs", "Seeing what happened"), as a table: `| # | Requirement |`.
 - **Primary** vs **secondary (nice to have, later)** requirements.
 - **Out of scope**: what the user explicitly does not want, so it is not built by accident.

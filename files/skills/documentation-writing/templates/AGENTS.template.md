@@ -1,4 +1,4 @@
-<!-- Loaded by EVERY session working in this folder or below: every word costs on every turn. Aim ≤ 400 words, never above ~600. Rules and pointers only; evidence goes in doc/ or TODO.md. Never repeat a parent AGENTS.md. Then: ln -sfn AGENTS.md CLAUDE.md -->
+<!-- Loaded by EVERY session working in this folder or below: every word costs on every turn. Aim ≤ 400 words, never above ~600, not counting ## Vocabulary. Rules and pointers only; evidence goes in doc/ or TODO.md. Never repeat a parent AGENTS.md. Then: ln -sfn AGENTS.md CLAUDE.md -->
 
 # <project-name>
 
@@ -18,11 +18,11 @@
 
 ## Vocabulary
 
-One concept, one word. Full list: [`doc/VOCABULARY.md`](doc/VOCABULARY.md).
+The only words for these concepts, in every file and when talking to the user. A new word is added here first, with the user's agreement.
 
-| Word | Means |
-|---|---|
-| **<word>** | <one line> |
+| Word | Means | Never say |
+|---|---|---|
+| **<word>** | <one line; a measured quantity names its unit> | <synonyms agents drift to; words removed by a rename> |
 
 ## Where to look
 

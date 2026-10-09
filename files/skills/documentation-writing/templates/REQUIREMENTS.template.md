@@ -1,16 +1,10 @@
 # Requirements
 
-What the user wants, from the user's point of view only — the end user, or the developer using it: **the benefit, never the mechanism**. How it is built is in [`DESIGN.md`](DESIGN.md).
+What the user wants, from the user's point of view only — the end user, or the developer using it: **the benefit, never the mechanism**. How it is built is in [`DESIGN.md`](DESIGN.md). Words are used as defined in the vocabulary table of [`AGENTS.md`](AGENTS.md).
 
 ## Goal
 
 <In the user's own words: the problem today, and what they want instead.>
-
-## Vocabulary
-
-| Word | Meaning |
-|---|---|
-| **<word>** | <one line> |
 
 ## Primary requirements
 
