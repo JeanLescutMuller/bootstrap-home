@@ -94,7 +94,7 @@ Development (writing/editing code) happens on the MacBook only. The Debian VM, a
 
 # Scheduling recurring jobs
 
-Standard pattern for any recurring background job under `~/dev/`: a LaunchAgent (macOS, `~/Library/LaunchAgents/com.<x>.plist`) or a systemd `--user` service+timer (Linux, `~/.config/systemd/user/com.<x>.{service,timer}`), with `loginctl enable-linger` (best-effort) on Linux so the user unit runs without an active login session.
+Standard pattern for any recurring background job under `~/dev/`: a LaunchAgent (macOS) or a systemd `--user` service+timer (Linux), named `com.jeanlescut.<repo>[.<job>]` — `<repo>` the GitHub repo name, `.<job>` only when the project has several jobs, the same name on every machine. Real files in `~/opt/<repo>/`, symlinks in `~/Library/LaunchAgents/<name>.plist` or `~/.config/systemd/user/<name>.{service,timer}`, with `loginctl enable-linger` (best-effort) on Linux so the user unit runs without an active login session. Never system scope (`/etc/systemd/system/`, `/Library/LaunchDaemons/`, root cron) unless the job truly needs root. A project's `install.sh` removes its former trigger names itself (self-migrating).
 
 # Keeping this file in sync
 
