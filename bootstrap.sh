@@ -42,13 +42,13 @@ DOTFILES=(
     "skills/python-coding/SKILL.md:$HOME/.claude/skills/python-coding/SKILL.md"
     "skills/jupyter-notebooks/SKILL.md:$HOME/.claude/skills/jupyter-notebooks/SKILL.md"
     "skills/patch-statusline/SKILL.md:$HOME/.claude/skills/patch-statusline/SKILL.md"
-    "skills/taskforce/SKILL.md:$HOME/.claude/skills/taskforce/SKILL.md"
+    "skills/task-management/SKILL.md:$HOME/.claude/skills/task-management/SKILL.md"
     "skills/claude-config-ownership/SKILL.md:$HOME/.agents/skills/claude-config-ownership/SKILL.md"
     "skills/shell-scripting/SKILL.md:$HOME/.agents/skills/shell-scripting/SKILL.md"
     "skills/python-coding/SKILL.md:$HOME/.agents/skills/python-coding/SKILL.md"
     "skills/jupyter-notebooks/SKILL.md:$HOME/.agents/skills/jupyter-notebooks/SKILL.md"
     "skills/patch-statusline/SKILL.md:$HOME/.agents/skills/patch-statusline/SKILL.md"
-    "skills/taskforce/SKILL.md:$HOME/.agents/skills/taskforce/SKILL.md"
+    "skills/task-management/SKILL.md:$HOME/.agents/skills/task-management/SKILL.md"
 )
 
 # Multi-file skills: every file under the skill folder, to both agent homes.
@@ -162,6 +162,7 @@ _migrate_legacy_dev_instructions() {
 # holds nothing but the SKILL.md (and its .bak) this project put there.
 RENAMED_SKILLS=(
     "todoist-tasks"
+    "taskforce"
 )
 
 _remove_renamed_skills() {
