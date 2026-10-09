@@ -11,7 +11,7 @@ The user's to-do list for life is **Todoist** (Free plan). Gmail, Calendar and C
 
 | Word | Meaning |
 |---|---|
-| **area** | Top-level category = a Todoist project: `Administrative`, `Health`, `Home`, `Others` |
+| **area** | Top-level category = a Todoist project: `Administrative`, `Health`, `Home`, `Robotics`, `Others` (catch-all) |
 | **stream** | One ongoing topic inside an area, written `<Area> - <Topic>`, e.g. `Health - Sleep Apnea`, `Administrative - La Banque Postale` |
 | **topic** | The second part of a stream, e.g. `Sleep Apnea` |
 | **agent task** | A task an agent plans for itself or another agent. Always has the label `agent`, plus the model label `claude` or `chatgpt`. |
@@ -19,7 +19,7 @@ The user's to-do list for life is **Todoist** (Free plan). Gmail, Calendar and C
 
 ## Creating a task
 
-- **Project** = the area. Never create a new project without asking: Free plan allows 5 (4 used).
+- **Project** = the area. Never create a new project without asking: Free plan allows 5, all 5 used. A new area means merging or deleting one first.
 - **Title**: short and actionable, starting with the topic: `Sleep apnea: teeth scan for the brace (Dr. Ettlin)`.
 - **Due date** when a real date is known (appointment, follow-up). Date only, no time, unless the user asks.
 - **Priority**: P1 = today or there are consequences · P2 = this week · P3 = soon · P4 = someday.
