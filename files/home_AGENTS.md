@@ -92,10 +92,6 @@ Development (writing/editing code) happens on the MacBook only. The Debian VM, a
   session files. Either project works without the other. See
   `agent-usage-tracker`'s README ("Contract with agent-statusline").
 
-# Scheduling recurring jobs
-
-Creating, changing, renaming or decommissioning any service or scheduled job (LaunchAgent, systemd timer/service, cron, Cloud Scheduler) on any machine: **load the `services` skill first**. In short: real files in `~/opt/<repo>/`, only symlinks where the OS looks, named `com.jeanlescut.<repo>[.<job>]`, user scope, written by the project's idempotent self-migrating `install.sh`; recurring jobs run through multi-host-orchestrator.
-
 # Keeping this file in sync
 
 When modifying this file, always consider modifying the bootstrap template at
