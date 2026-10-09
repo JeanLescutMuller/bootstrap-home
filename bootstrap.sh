@@ -42,13 +42,13 @@ DOTFILES=(
     "skills/python-coding/SKILL.md:$HOME/.claude/skills/python-coding/SKILL.md"
     "skills/jupyter-notebooks/SKILL.md:$HOME/.claude/skills/jupyter-notebooks/SKILL.md"
     "skills/patch-statusline/SKILL.md:$HOME/.claude/skills/patch-statusline/SKILL.md"
-    "skills/todoist-tasks/SKILL.md:$HOME/.claude/skills/todoist-tasks/SKILL.md"
+    "skills/taskforce/SKILL.md:$HOME/.claude/skills/taskforce/SKILL.md"
     "skills/claude-config-ownership/SKILL.md:$HOME/.agents/skills/claude-config-ownership/SKILL.md"
     "skills/shell-scripting/SKILL.md:$HOME/.agents/skills/shell-scripting/SKILL.md"
     "skills/python-coding/SKILL.md:$HOME/.agents/skills/python-coding/SKILL.md"
     "skills/jupyter-notebooks/SKILL.md:$HOME/.agents/skills/jupyter-notebooks/SKILL.md"
     "skills/patch-statusline/SKILL.md:$HOME/.agents/skills/patch-statusline/SKILL.md"
-    "skills/todoist-tasks/SKILL.md:$HOME/.agents/skills/todoist-tasks/SKILL.md"
+    "skills/taskforce/SKILL.md:$HOME/.agents/skills/taskforce/SKILL.md"
 )
 
 # Multi-file skills: every file under the skill folder, to both agent homes.
@@ -156,6 +156,31 @@ _migrate_legacy_dev_instructions() {
         rm "$claude"
     fi
     installed "merged ~/dev agent instructions into ~/AGENTS.md"
+}
+
+# Skills that were renamed: remove the old deployed folder, but only when it
+# holds nothing but the SKILL.md (and its .bak) this project put there.
+RENAMED_SKILLS=(
+    "todoist-tasks"
+)
+
+_remove_renamed_skills() {
+    local old dir
+    for old in "${RENAMED_SKILLS[@]}"; do
+        for dir in "$HOME/.claude/skills/$old" "$HOME/.agents/skills/$old"; do
+            [ -d "$dir" ] || continue
+            if [ -n "$(cd "$dir" && ls -A | grep -v -x -e SKILL.md -e SKILL.md.bak)" ]; then
+                warn "renamed skill folder has extra files - preserving $dir"
+                continue
+            fi
+            if [ "$INSTALL" = "false" ]; then
+                skip "renamed skill $dir"
+                continue
+            fi
+            rm -r "$dir"
+            installed "removed renamed skill $dir"
+        done
+    done
 }
 
 # Own binaries: real file under ~/opt/bootstrap-home/bin/, symlinked from
@@ -286,6 +311,7 @@ for entry in "${AGENT_INSTRUCTION_LINKS[@]}"; do
 done
 
 _migrate_legacy_dev_instructions
+_remove_renamed_skills
 
 step "own binaries"
 for entry in "${OWN_BINS[@]}"; do

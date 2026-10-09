@@ -1,9 +1,9 @@
 ---
-name: todoist-tasks
+name: taskforce
 description: How to create, update and link the user's life to-do tasks in Todoist, and how to tie them to Gmail, Google Calendar and Contacts with a shared "stream" keyword. Use whenever creating, updating, completing or reviewing a Todoist task, when an agent wants to plan work for a later day, or when filing an email or calendar event that belongs to an ongoing topic (health, admin, home…).
 ---
 
-# Todoist tasks and linking
+# Taskforce: task management for the user and agents
 
 The user's to-do list for life is **Todoist** (Free plan). Gmail, Calendar and Contacts are linked to it with one shared keyword, the **stream**.
 
