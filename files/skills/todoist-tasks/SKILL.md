@@ -13,7 +13,8 @@ The user's to-do list for life is **Todoist** (Free plan). Gmail, Calendar and C
 |---|---|
 | **area** | Top-level category = a Todoist project: `Administrative`, `Health`, `Home`, `Others` |
 | **stream** | One ongoing topic inside an area, written `<Area> - <Topic>`, e.g. `Health - Sleep Apnea`, `Administrative - La Banque Postale` |
-| **agent task** | A task an agent plans for itself or another agent. Always has the label `agent`. |
+| **topic** | The second part of a stream, e.g. `Sleep Apnea` |
+| **agent task** | A task an agent plans for itself or another agent. Always has the label `agent`, plus the model label `claude` or `chatgpt`. |
 | **my task** | Any task without the `agent` label: the user's own |
 
 ## Creating a task
@@ -23,6 +24,7 @@ The user's to-do list for life is **Todoist** (Free plan). Gmail, Calendar and C
 - **Due date** when a real date is known (appointment, follow-up). Date only, no time, unless the user asks.
 - **Priority**: P1 = today or there are consequences · P2 = this week · P3 = soon · P4 = someday.
 - **Agent task** → add label `agent`. No exception. The user's widget filter "My day" = `(today | overdue) & !@agent` hides them; filter "Agents" = `@agent` lists them.
+- **Which agent** → also add the model label: `claude` (coding, anything technical) or `chatgpt` (admin, Gmail-type work). Only `agent` with no model label = any agent may take it. Pick up only tasks labelled with your own model or with no model label. The user may reassign by swapping the label.
 - **Description** (always, the user reads it on the phone), in this order:
 
 ```
