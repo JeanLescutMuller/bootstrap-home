@@ -111,3 +111,7 @@ reusable bash script and executing it with stdout/stderr redirected to files,
 rather than streaming output through the model or driving the process step by
 step via the LLM. Inspect the log files afterward only as needed (e.g. tail on
 failure). Minimize token consumption wherever possible.
+
+# To-do list (Todoist)
+
+The user's to-do list for life is **Todoist**. Before creating or changing any task, or filing an email/calendar event for an ongoing topic, load the **`todoist-tasks`** skill. Key rule: a task planned by/for an agent always carries the label **`agent`**; tasks without it are the user's own.
