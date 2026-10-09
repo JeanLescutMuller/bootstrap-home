@@ -34,7 +34,8 @@ The user's to-do list for life is **Todoist** (Free plan). Gmail, Calendar and C
 | Robotics: Swiss Robotics Association, Swiss Robotics Day | `chatgpt` | pitch, who to meet, follow-ups |
 | Robotics - Startup: **story** and names | `chatgpt` | writing |
 | Robotics - Startup: **domain and website** | `claude` | anything technical, code |
-| Any area: **linking** (Gmail labels, calendar titles/colours, `Stream:` lines) | `claude` | ChatGPT's Gmail/Calendar access is read-only; Claude writes via `gws` |
+
+Linking (Gmail labels, calendar titles/colours, `Stream:` lines) is done by whichever model owns the stream. If your tools can't do one step, create a task for the other model (`agent` + its label) instead of skipping it.
 - **Description** (always, the user reads it on the phone), in this order:
 
 ```
