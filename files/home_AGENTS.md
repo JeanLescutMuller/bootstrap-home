@@ -112,6 +112,6 @@ rather than streaming output through the model or driving the process step by
 step via the LLM. Inspect the log files afterward only as needed (e.g. tail on
 failure). Minimize token consumption wherever possible.
 
-# To-do list (Todoist)
+# Task management (taskforce)
 
-The user's to-do list for life is **Todoist**. Before creating or changing any task, or filing an email/calendar event for an ongoing topic, load the **`taskforce`** skill. Key rule: a task planned by/for an agent always carries the label **`agent`**, plus **`claude`** or **`chatgpt`** for which model should do it; tasks without `agent` are the user's own.
+All the user's tasks, life and every project, live in one place, currently **Todoist**. Before creating or changing any task, or filing an email/calendar event for an ongoing topic, load the **`taskforce`** skill. Key rule: a task planned by/for an agent always carries the label **`agent`**, plus **`claude`** or **`chatgpt`** for which model should do it; tasks without `agent` are the user's own.

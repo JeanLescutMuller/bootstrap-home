@@ -1,6 +1,6 @@
 ---
 name: taskforce
-description: How to create, update and link the user's life to-do tasks in Todoist, and how to tie them to Gmail, Google Calendar and Contacts with a shared "stream" keyword. Use whenever creating, updating, completing or reviewing a Todoist task, when an agent wants to plan work for a later day, or when filing an email or calendar event that belongs to an ongoing topic (health, admin, home…).
+description: Task management for everything the user and their agents need to do (life and all projects): how to create, hand off, complete and link tasks in Todoist (the current tool), and how to tie them to Gmail, Google Calendar and Contacts with a shared "stream" keyword. Use whenever creating, updating, completing or reviewing a Todoist task, when an agent wants to plan work for a later day, or when filing an email or calendar event that belongs to an ongoing topic (health, admin, home…).
 ---
 
 # Taskforce: task management for the user and agents
