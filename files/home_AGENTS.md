@@ -110,4 +110,4 @@ failure). Minimize token consumption wherever possible.
 
 # Task management
 
-All the user's tasks, life and every project, live in one place, currently **Todoist**. Before creating or changing any task, or filing an email/calendar event for an ongoing topic, load the **`task-management`** skill. Key rule: a task planned by/for an agent always carries the label **`agent`**, plus **`claude`** or **`chatgpt`** for which model should do it; tasks without `agent` are the user's own.
+All the user's tasks, life and every project, live in one place, currently **Todoist**; a repo's tasks are files in its `TODO/` folder (one per task), mirrored in Todoist. Before creating, claiming or completing any task, setting a reminder for later, or filing an email/calendar event for an ongoing topic, load the **`task-management`** skill. Key rules: every task has an owner (`Jean`, `any_agent`, `claude`, `chatgpt`); a future check is a dated task, never only a private reminder; mark `in-progress` before working and complete only with proof.
