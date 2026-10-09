@@ -2,13 +2,59 @@
 
 ## Communication: optimize for speed
 
-The user has limited time. Make responses easy to scan and act on:
+The user has limited time, reads quickly, and does not read long prose. Make
+responses easy to scan and act on:
 
 - Keep answers short and lead with the result or next action.
-- Prefer a compact visual format, such as a table, when it communicates the
-  information more clearly than prose.
 - When providing commands or code to execute, consolidate them into a single
   copy-pasteable code block whenever practical.
+
+### Show, don't narrate
+
+**Default to a table or an ASCII/UTF-8 diagram, not paragraphs.** Prose is the
+fallback, used only for something a picture genuinely cannot carry. In practice:
+
+- A comparison, a list of values, a before/after → **a table**.
+- A sequence, a pipeline, a hierarchy, a shape over time → **an ASCII/UTF-8
+  diagram** (box-drawing characters, a sparkline, a small bar chart of `█`).
+- A trend or distribution in real data → **a plot**, written to a PNG and shown,
+  or a text sparkline if that is enough.
+- Never a wall of prose explaining numbers that could have been a table.
+
+Aim for **at most 2–3 short sentences between visuals**. If a response is turning
+into paragraphs, that is the signal to stop and draw it instead.
+
+### Vocabulary: the user's words, defined once, never changed
+
+The user has repeatedly been lost by invented terminology. Therefore:
+
+- **Use the user's own words** for the things they named. If they say "window",
+  do not start saying "envelope" or "interval".
+- **Do not coin a new term** when an ordinary phrase works. If a new term is
+  genuinely needed, define it **in one line, in a table**, the first time it
+  appears, and never silently replace it later.
+- **Keep the vocabulary small and stable.** One concept = one word, for the whole
+  project and the whole conversation. Renaming a concept mid-thread is a bug.
+- When using a project-specific term in a reply, assume the user does **not**
+  remember it: re-gloss it in a few words (`amount_due` (how much to spend now)).
+
+### Re-orienting after a gap
+
+The user often leaves a conversation and returns days later, with no memory of
+where it stood. **At the start of a session, check how long it has been since the
+previous exchange** (file mtimes, `git log -1 --format=%cd`, the last entry in a
+log or state file).
+
+If it has been more than roughly a day, open with a compact re-orientation
+**before** doing anything else — graphical, not narrative:
+
+- how long it has been, and the date of the last work;
+- a one-line reminder of the project's goal, in the user's words;
+- the overall design as a small diagram (the stages/components and where we are);
+- a table of what is **done** / **in progress** / **next**;
+- the single open question or decision that is waiting on them, if any.
+
+Keep the whole thing to a screenful. It is a map, not a report.
 
 - `~/dev/` — all source repos, flat (no category subfolders).
 - `~/opt/<project>/` — deployed **and scheduled** runtime copy: what a launchd job / systemd unit / cron actually points at, plus the log/state/data it produces. Separate from the git source in `~/dev/<project>`. Everything that scheduled thing owns lives here as a real file — code, logs, state, and the scheduler/trigger definition itself (LaunchAgent `.plist`, systemd `.service`/`.timer`). The OS-mandated location (`~/Library/LaunchAgents/`, `~/.config/systemd/user/`) holds only a symlink pointing back into `~/opt/<project>/` — never a real file there. Ad-hoc, run-by-hand tooling (a one-off script, exploratory analysis, a recompute/migration helper) stays in `~/dev/<project>` and runs from there, even when it reads or writes that project's live `~/opt/` state — don't duplicate it into `~/opt/` just because it touches production data. `~/opt/` is for what a scheduler runs unattended, not for anything a human runs by hand.
@@ -32,20 +78,19 @@ Development (writing/editing code) happens on the MacBook only. The Debian VM, a
   project, not bootstrap-home). A renderer reads cached hostname, Git, and
   memory data; when dynamic data is stale, only the renderer that atomically
   acquires its shared lock performs the bounded refresh. Other sessions
-  immediately keep displaying the previous value. Quota tracking (both
-  Claude and Codex) lives entirely inside `agent-statusline` now - the
-  former separate `agent-quota-tracker` project was folded into its repo on
-  2026-08-31 and its live deploy fully decommissioned on 2026-09-13 (nothing
-  under `~/opt/agent-quota-tracker/` exists anymore). Claude's primary quota
-  path is free: every Claude Code render already carries live `rate_limits`
-  on its own `/v1/messages` responses, pushed straight into
-  `agent-statusline`'s quota log with no network call of its own; a
-  LaunchAgent-scheduled poller is only a fallback for the one gap that push
-  path can't cover (a session that hasn't sent its first message yet, or a
-  machine-wide idle stretch with no statusline rendering anywhere). Codex
-  has no equivalent per-render push, so it relies on its own scheduled
-  poller plus reading Codex's local session files directly. See
-  `agent-statusline`'s own README for the full mechanism.
+  immediately keep displaying the previous value. Usage tracking (quota
+  percent, tokens, spend, for both Claude and Codex) is a separate project,
+  `agent-usage-tracker` (`~/opt/agent-usage-tracker/`), split back out of
+  `agent-statusline` on 2026-09-30 (it had absorbed the former
+  `agent-quota-tracker` on 2026-08-31). Claude's primary quota path is free:
+  every Claude render pipes its stdin payload (which carries live
+  `rate_limits`) into the tracker's `bin/ingest-claude-statusline.sh`, and
+  the statusline displays the tracker's `state/quota/claude` (the account's
+  freshest reading); a LaunchAgent-scheduled poller is only a fallback for a
+  session that hasn't sent its first message yet or a machine-wide idle
+  stretch. Codex relies on its own scheduled poller plus Codex's local
+  session files. Either project works without the other. See
+  `agent-usage-tracker`'s README ("Contract with agent-statusline").
 
 # Scheduling recurring jobs
 

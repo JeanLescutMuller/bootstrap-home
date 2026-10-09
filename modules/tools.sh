@@ -8,7 +8,7 @@
 # by design, since these tools deploy to ~/opt/<name>/, not ~/dev/<name>/.
 step "tools"
 
-TOOLS=(claude-session-manager notify agent-statusline)
+TOOLS=(claude-session-manager notify agent-statusline agent-usage-tracker)
 
 for name in "${TOOLS[@]}"; do
     if [ "$INSTALL" = "false" ]; then
