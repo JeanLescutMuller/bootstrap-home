@@ -49,6 +49,11 @@ DOTFILES=(
     "skills/patch-statusline/SKILL.md:$HOME/.agents/skills/patch-statusline/SKILL.md"
 )
 
+# Multi-file skills: every file under the skill folder, to both agent homes.
+for _skill_file in $(cd "$SCRIPT_DIR/files" && find skills/documentation-writing -type f | sort); do
+    DOTFILES+=("$_skill_file:$HOME/.claude/$_skill_file" "$_skill_file:$HOME/.agents/$_skill_file")
+done
+
 # Agent-specific compatibility names point to the shared canonical files.
 AGENT_INSTRUCTION_LINKS=(
     "$HOME/AGENTS.md:$HOME/.claude/CLAUDE.md"
