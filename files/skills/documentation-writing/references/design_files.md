@@ -43,7 +43,7 @@ Examples: `~/dev/agent-auto-resume/CONSIDERATIONS.md` (15 themes, "lists no desi
 - **Decided questions**: questions the user has answered, with the answer, so they are not asked again.
 - **Never**: an architecture, a file name, a language, a data format, an exit code, an interval, a number. If one creeps in, move it to `DESIGN.md` and list it there under "Moved out of the requirements".
 
-Examples: `~/dev/multi-host-orchestrator/REQUIREMENTS.md` ("from the user's point of view only: the benefit, never the mechanism"), `~/dev/documentation_tech_stack/REQUIREMENTS.md` (problem → question → mandatory gates → scope).
+Examples: `~/dev/job-runner/REQUIREMENTS.md` ("from the user's point of view only: the benefit, never the mechanism"), `~/dev/documentation_tech_stack/REQUIREMENTS.md` (problem → question → mandatory gates → scope).
 
 ## `DESIGN.md`
 
@@ -59,7 +59,7 @@ Examples: `~/dev/multi-host-orchestrator/REQUIREMENTS.md` ("from the user's poin
 - Prefer one `DESIGN.md` updated in place, with a short "Superseded decisions" section, over `DESIGN_v1.md` / `DESIGN_v2.md` side by side; git keeps the old versions.
 - When the design splits per stage, one `design/<NN>_<stage>/DESIGN.md` per stage plus an overall `design/DESIGN.md`. A per-stage `CONSIDERATIONS.md` may sit beside it.
 
-Examples: `~/dev/agent-quota-maximizer/design/04_start_windows/DESIGN.md` (header table, a pseudo-code rule, "why always rather than only when needed", acceptance, open points), `~/dev/multi-host-orchestrator/DESIGN.md` (with a "Moved out of the requirements" section).
+Examples: `~/dev/agent-quota-maximizer/design/04_start_windows/DESIGN.md` (header table, a pseudo-code rule, "why always rather than only when needed", acceptance, open points), `~/dev/job-runner/DESIGN.md` (with "Superseded decisions": what was decided, then replaced, and why).
 
 ## Once the code exists
 

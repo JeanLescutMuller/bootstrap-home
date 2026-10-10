@@ -42,7 +42,7 @@ The job's name is the entrypoint's place: `~/opt/<repo>/entrypoint.sh` → `<rep
 
 ## 3. Trigger files (a job's, or a service's)
 
-Same rules and names. A ready snippet: `~/dev/multi-host-orchestrator/examples/triggers/install_snippet.sh` (mho is retired, its snippet still fits); change only these:
+Same rules and names. A working model: the trigger part of `~/dev/agent-session-manager/install.sh` (a LaunchAgent on the Mac, a systemd timer on the VM); change only these:
 
 | | macOS plist | systemd `--user` |
 |---|---|---|
