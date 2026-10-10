@@ -7,10 +7,11 @@ description: How services and scheduled jobs are created, changed, renamed and d
 
 | Word | Meaning |
 |---|---|
-| **Job** | one thing to run on a schedule (multi-host-orchestrator's word) |
+| **Job** | one thing to run on a schedule (job-runner's word) |
 | **Trigger** | the machine's own scheduler entry that starts it: LaunchAgent, systemd timer, Cloud Scheduler |
 | **Service** | something that runs all the time (`KeepAlive` / `Restart=always`) |
-| **mho** | multi-host-orchestrator (`~/dev/multi-host-orchestrator`): runs a job's checks, records them, shows them on the phone dashboard `http://h-frank-1:8098` |
+| **job-runner** | `~/dev/job-runner`: the Bash library (`~/opt/job-runner/lib.sh`) a job's **entrypoint** sources: records each check's status, runs the work with a timeout, helps decide when to skip; every status shows on the phone dashboard `http://h-frank-1:8097` |
+| **Entrypoint** | the job's own Bash script, `~/opt/<repo>/entrypoint.sh` (or `<job>.sh`), run by its trigger |
 
 ## Rules, always
 
@@ -26,24 +27,22 @@ description: How services and scheduled jobs are created, changed, renamed and d
 ## 1. Which kind?
 
 ```
-runs all the time (server, receiver, watcher) ─────────────► a service: no mho                       (§3)
-every few minutes, a missed run is harmless (a poller) ────► a plain trigger to the command: no mho   (§3)
-anything else recurring: daily, retries, conditions, ──────► a job through mho                        (§2)
-several machines, must show on the dashboard
+runs all the time (server, receiver, watcher) ──► a service, no job-runner                    (§3)
+anything recurring (a poller included) ───────────► a job: a trigger runs its entrypoint        (§2)
 ```
 
-## 2. A job through mho
+## 2. A job through job-runner
 
-1. Read `~/dev/multi-host-orchestrator/doc/examples.md` ("Decide in this order": machines → trigger → period → extra rules); copy the closest `examples/NN-*/mho_var.sh` into the project as `src/mho_var.sh`, keeping only the options a constraint asks for.
-2. The command returns real exit codes (0 only when the work is done); `TIMEOUT_MIN` always.
-3. `install.sh` copies it to `~/opt/<repo>/mho_var.sh` and writes the triggers with `examples/triggers/install_snippet.sh` (`mac_tick SECONDS`, `vm_tick SECONDS`, `vm_fixed 'OnCalendar'…`; on the Mac always a tick). Each trigger runs `~/opt/multi-host-orchestrator/mho_entrypoint.sh ~/opt/<repo>/mho_var.sh`.
-4. Test one check by hand (that command), then read `~/opt/multi-host-orchestrator/state/<job>/records.tsv` and the job's card on the dashboard.
+1. Read `~/dev/job-runner/DESIGN.md` §4 (the settings and helpers) and copy the closest entrypoint from `~/dev/job-runner/examples/` (one per real job, its requirements in its header) into the project as `src/entrypoint.sh` (or `src/<job>.sh` when the project has several jobs). The simplest is two lines: `. ~/opt/job-runner/lib.sh` then `jr_execute TIMEOUT_MIN CMD…`; add rules only for a real constraint (`jr_skip_if SUCCESS day "…"`, `jr_claim MIN` against overlap, `JR_SYNC_ENV=VM|GITHUB` + `jr_pull` for a job shared by several machines).
+2. The command returns real exit codes (0 only when the work is done); any other code is the project's own, mapped in the entrypoint (`jr_write_status WAIT|SKIP …`).
+3. `install.sh` copies it to `~/opt/<repo>/entrypoint.sh` and writes the triggers (on the Mac always a tick); each trigger runs `/bin/bash ~/opt/<repo>/entrypoint.sh`. A model: `~/dev/agent-session-manager/install.sh`.
+4. Test one check by hand with `JR_DRY_RUN=1 /bin/bash ~/opt/<repo>/entrypoint.sh` (decides for real, does not work), then read `~/opt/job-runner/status/<job>/<machine>.tsv` and the job's card on the dashboard. Its thresholds and look: an optional `~/dev/job-runner/dashboard/conf/<repo>[.<job>].conf` (DESIGN §11).
 
-The job's name is the folder holding `mho_var.sh` (or `<job>.env`'s file name). Moving an existing schedule to mho, and GCP: `~/dev/multi-host-orchestrator/doc/migrating_a_project.md`. Do not edit multi-host-orchestrator from another project: report a gap to the user.
+The job's name is the entrypoint's place: `~/opt/<repo>/entrypoint.sh` → `<repo>`, `~/opt/<repo>/<job>.sh` → `<repo>.<job>`. Do not edit job-runner from another project: report a gap to the user.
 
-## 3. A plain trigger or a service (no mho)
+## 3. Trigger files (a job's, or a service's)
 
-Same rules and names. Start from `install_snippet.sh` and change only these:
+Same rules and names. A ready snippet: `~/dev/multi-host-orchestrator/examples/triggers/install_snippet.sh` (mho is retired, its snippet still fits); change only these:
 
 | | macOS plist | systemd `--user` |
 |---|---|---|
@@ -55,13 +54,13 @@ Same rules and names. Start from `install_snippet.sh` and change only these:
 ## 4. Change or rename
 
 - A new trigger name: `install.sh` removes the old one on every machine (`rm_trigger OLD_NAME` from `install_snippet.sh`), then installs the new one.
-- A mho job's name changes (its folder or file renamed): once the old triggers are gone, `~/dev/multi-host-orchestrator/dev/decommission.sh OLD_JOB`.
+- A job's name changes (its folder or entrypoint renamed): once the old triggers are gone, mark the old name `DECOMMISSIONED=1` in `~/dev/job-runner/dashboard/conf/<old job>.conf` (then `~/dev/job-runner/deploy/deploy.sh vm`).
 
 ## 5. Decommission
 
 1. Remove the trigger on every machine it runs on, with the project's `uninstall.sh` (or `install.sh`): macOS `launchctl bootout` + remove the link and the real file; Linux `systemctl --user disable --now`, remove links and files, `daemon-reload`; GCP the Cloud Scheduler entry and the Cloud Run job.
-2. A mho job: `~/dev/multi-host-orchestrator/dev/decommission.sh JOB` moves it to "Decommissioned" at the bottom of the dashboard.
-3. Keep the data (`~/opt/<repo>/data`, `~/opt/multi-host-orchestrator/state/<job>`, the VM's `hub/<machine>/<job>`) unless the user says to delete it.
+2. A job: `DECOMMISSIONED=1` in `~/dev/job-runner/dashboard/conf/<job>.conf`, deployed with `~/dev/job-runner/deploy/deploy.sh vm`: it folds to "Decommissioned" at the bottom of the dashboard.
+3. Keep the data (`~/opt/<repo>/data`, `~/opt/job-runner/status/<job>`, `~/opt/job-runner/logs/<job>`) unless the user says to delete it.
 4. Remove the trigger from the project's docs.
 
 ## 6. Check (Mac, then `ssh H-Frank-1 bash -s` with the same lines)
