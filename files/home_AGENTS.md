@@ -69,6 +69,7 @@ Development (writing/editing code) happens on the MacBook only. The Debian VM, a
 # Machine-specific
 
 - **macOS → Debian VM**: reachable via `ssh H-Frank-1` (alias in `~/.ssh/config`; Hostinger EC2, Debian 12). Setup/provisioning details live in `bootstrap-vm`, not here.
+- **macOS → home NAS**: reachable via `ssh babisnas` (alias in `~/.ssh/config`, key `~/.ssh/id_babisnas`, user `enrices`; UGREEN DXP4800 Plus, UGOS Pro = Debian 12). Home LAN only, not exposed to the internet (verified 2026-10-10). Data: `/volume1/shared_raid1` (RAID1, 901G), `/volume2/shared_nvme1` (443G). `sudo` needs a password, so ask the user for root tasks.
 - **Debian VM**: `~/opt/` (user's own tools) is distinct from root-owned `/opt/` (root-run systemd services, e.g. `/opt/auto-commit` as of 2026-08-24 — being migrated to user-scope `~/opt/` + `systemd --user`, since root/system scope should be the exception, not the default).
 
 # Monitoring
