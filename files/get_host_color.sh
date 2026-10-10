@@ -21,7 +21,10 @@ set -euo pipefail
 
 HOST_PALETTE=(25 27 33 39 45 51 50 44 57 63 99 129 135 141)
 
-host="${1:-$(hostname -s 2>/dev/null || hostname)}"
+# This machine's name: "Machine name" in ~/AGENTS.md (copy it identically)
+m=${JR_MACHINE_NAME:-$(if [ "$(uname)" = Darwin ]; then scutil --get HostName; else cat /etc/hostname; fi 2>/dev/null)} || :
+m=${m%%.*}; [[ $m =~ ^[A-Za-z0-9-]+$ ]] || m='?'
+host="${1:-$m}"
 
 if command -v sha256sum >/dev/null 2>&1; then
     hex=$(printf '%s' "$host" | sha256sum | cut -c1-8)

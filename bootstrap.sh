@@ -316,6 +316,23 @@ done
 _migrate_legacy_dev_instructions
 _remove_renamed_skills
 
+# The machine's name is its hand-set HostName ("Machine name" in
+# files/home_AGENTS.md): without one, macOS takes it from the network and it
+# drifts. Check only - setting it needs sudo, which this script never runs.
+step "machine name"
+if [ "$(uname)" = Darwin ]; then
+    _hn=$(scutil --get HostName 2>/dev/null) || _hn=
+    if [[ $_hn =~ ^[A-Za-z0-9-]+$ ]]; then
+        ok "HostName $_hn"
+    else
+        fail "HostName not set (or not [A-Za-z0-9-]+): sudo scutil --set HostName $(scutil --get LocalHostName | tr A-Z a-z)"
+    fi
+else
+    _hn=$(cat /etc/hostname 2>/dev/null) || _hn=
+    if [[ ${_hn%%.*} =~ ^[A-Za-z0-9-]+$ ]]; then ok "/etc/hostname ${_hn%%.*}"
+    else fail "/etc/hostname empty: sudo hostnamectl set-hostname <name> (bootstrap-vm owns it)"; fi
+fi
+
 step "own binaries"
 for entry in "${OWN_BINS[@]}"; do
     _deploy_own_bin "${entry%%:*}" "${entry#*:}"
