@@ -110,12 +110,15 @@ A display (status line, colour) replaces the error branch with `m='?'`. The name
   `agent-statusline` on 2026-09-30 (it had absorbed the former
   `agent-quota-tracker` on 2026-08-31). Claude's primary quota path is free:
   every Claude render pipes its stdin payload (which carries live
-  `rate_limits`) into the tracker's `bin/ingest-claude-statusline.sh`, and
-  the statusline displays the tracker's `state/quota/claude` (the account's
-  freshest reading); a LaunchAgent-scheduled poller is only a fallback for a
-  session that hasn't sent its first message yet or a machine-wide idle
-  stretch. Codex relies on its own scheduled poller plus Codex's local
-  session files. Either project works without the other. See
+  `rate_limits`) into the tracker's `src/statusline_payload_reader.py`,
+  which stores it and prints the account's freshest reading from any
+  session, poller or machine (the `latest` view of its
+  `data/claude/account_quotas.db`, a passed reset at 0%); the statusline
+  displays that line. A job-runner job polls only when no reading is fresh
+  enough, and the Mac syncs the readings with the VM every 2 min. Codex
+  relies on its own scheduled poller plus Codex's local session files.
+  Anything else reading the tracker's data follows its `FOR_READERS.md`.
+  Either project works without the other. See
   `agent-usage-tracker`'s README ("Contract with agent-statusline").
 
 # Keeping this file in sync
