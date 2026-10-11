@@ -22,7 +22,7 @@ gws gmail users messages list --params '{"userId": "me", "q": "from:x newer_than
 
 ## Rules
 
-- **Confirm with the user before any write or delete**; try it with `--dry-run` first.
+- **Confirm with the user before any write or delete**, and above all before sending an email or a calendar invite; try it with `--dry-run` first.
 - Never print tokens or keys.
 - Mutations for one user must be sent **one at a time** (parallel calls fail or slow down).
 - Before `searchContacts` / `otherContacts.search`, send a warm-up search with an empty query, or results are stale.

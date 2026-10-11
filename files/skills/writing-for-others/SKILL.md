@@ -46,6 +46,6 @@ Fix each one by rewriting the sentence around its point, not by swapping a word.
 
 1. Read it aloud as the user: would they say each sentence, and could they explain it if asked? If not, change it.
 2. Search the draft for the tells that survive most: contrasts, closers, triplets, dashes, stock words.
-3. **Show the user the final text and the recipient, and send nothing without their OK.**
+3. Give the user the final text. Sending it is the channel's job (its own skill), with the user's OK.
 
 Sources: `~/dev/auto-apply/docs/human-writing-guide.md`; patterns adapted from blader/humanizer (MIT, https://github.com/blader/humanizer), itself based on Wikipedia's "Signs of AI writing".

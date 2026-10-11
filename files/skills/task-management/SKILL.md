@@ -164,5 +164,4 @@ Link both ways: the task lists event/email links, and each event description lin
 - Older Gmail labels exist (`HairTransplant`, `2_Psy`, `1_Meta`, `0_Lawyer`, `3_Unemployment_and_Job_Searches`). Don't rename or merge them without asking.
 - Google Keep: no API for this personal account. Don't try.
 - `gws` OAuth is in Google "Testing" mode: the login expires every 7 days. On `invalid_grant`/scope errors, ask the user to re-run the login command (skill `google-workspace`).
-- **Never send an email** or invite on the user's behalf without explicit confirmation.
 - Calendars: `personnel` (primary, jean.lescut@gmail.com), `Couple` (shared), `Family`.
