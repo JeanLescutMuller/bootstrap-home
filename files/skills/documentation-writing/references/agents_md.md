@@ -2,7 +2,7 @@
 
 ## Every session loads it, so keep it small
 
-Every session that works in a folder is given **every `AGENTS.md` on the path from the repo root down to that folder, parents first**, before it does anything. A word in `AGENTS.md` is paid for on every turn of every session, whether the task needs it or not. A word in `doc/` or `TODO.md` is paid for only when an agent decides to open that file.
+Every session that works in a folder is given **every `AGENTS.md` on the path from the repo root down to that folder, parents first**, before it does anything. A word in `AGENTS.md` is paid for on every turn of every session, whether the task needs it or not. A word in `doc/` is paid for only when an agent decides to open that file.
 
 ```
 editing src/pipeline/ingest/ loads, in order:
@@ -16,16 +16,16 @@ editing src/pipeline/ingest/ loads, in order:
 | one `AGENTS.md`, not counting its `## Vocabulary` section | aim ≤ 400 words, never above ~600 |
 | the whole chain loaded in the deepest folder | ≤ ~1,900 words |
 
-**Over budget?** Find the longest passage that is *explaining* rather than *instructing* and move it to `doc/` or `TODO.md`. No rule needs to be dropped.
+**Over budget?** Find the longest passage that is *explaining* rather than *instructing* and move it to `doc/`. No rule needs to be dropped.
 
 **AGENTS.md or a skill?** A rule that most sessions in that folder need goes in `AGENTS.md`. A rule only some tasks need (a code snippet, a procedure, one tool's usage) becomes a skill: only its one-line description is loaded at startup, and that line must say *when* to use it ("Use when…"), with the words the user says. The machine-wide `~/AGENTS.md` (`bootstrap-home/files/home_AGENTS.md`) follows the same rule. Never add a "load skill X" line or a summary of the skill to any `AGENTS.md`: the description is the skill's only trigger, and the section it replaces is deleted.
 
 ## What it holds
 
-- **Rules, not evidence.** A rule is one or two imperative sentences plus a pointer (`→ doc/pnl.md §3`). The table, measurement or worked example proving it lives in `doc/` or `TODO.md`.
+- **Rules, not evidence.** A rule is one or two imperative sentences plus a pointer (`→ doc/pnl.md §3`). The table, measurement or worked example proving it lives in `doc/`.
 - **Never repeat a parent.** Put each rule once, at the level that owns it; a pointer to a parent's rule is fine, a copy drifts and then contradicts. The chain is path-based: if a folder's work routinely touches a sibling (a shared library), say so and link there.
 - **Self-sufficient.** An agent reading only the `AGENTS.md` chain, and never a README, must have every rule it needs.
-- **Contents, in order:** the purpose in one line, in the user's words · the rules and traps · what must not be touched · the commands to test and deploy · the vocabulary table (below) · a "where to look" table pointing at `doc/`, `TODO.md` and the design files.
+- **Contents, in order:** the purpose in one line, in the user's words · the rules and traps · what must not be touched · the commands to test and deploy · the vocabulary table (below) · a "where to look" table pointing at `doc/` and the design files.
 - Once code exists, rules derived from `DESIGN.md` go here as one-line rules pointing back at the design section that explains them.
 
 ## The vocabulary lives here, and only here

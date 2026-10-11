@@ -18,6 +18,9 @@
     "anthropic-skills:built-in-browser": "off",
     "anthropic-skills:computer-use": "off",
     "anthropic-skills:chrome-browser": "off",
-    "anthropic-skills:docs": "off"
+    "anthropic-skills:docs": "off",
+    "anthropic-skills:docx": "off",
+    "anthropic-skills:pptx": "off",
+    "anthropic-skills:xlsx": "off"
   }
 }

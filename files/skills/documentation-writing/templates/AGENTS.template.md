@@ -1,4 +1,4 @@
-<!-- Loaded by EVERY session working in this folder or below: every word costs on every turn. Aim ≤ 400 words, never above ~600, not counting ## Vocabulary. Rules and pointers only; evidence goes in doc/ or TODO.md. Never repeat a parent AGENTS.md. Then: ln -sfn AGENTS.md CLAUDE.md -->
+<!-- Loaded by EVERY session working in this folder or below: every word costs on every turn. Aim ≤ 400 words, never above ~600, not counting ## Vocabulary. Rules and pointers only; evidence goes in doc/. Never repeat a parent AGENTS.md. Then: ln -sfn AGENTS.md CLAUDE.md -->
 
 # <project-name>
 
@@ -28,6 +28,5 @@ The only words for these concepts, in every file and when talking to the user. A
 
 | | |
 |---|---|
-| open work | [`TODO.md`](TODO.md) |
 | how <subject> works | [`doc/<subject>.md`](doc/<subject>.md) |
 | why it is built this way | [`DESIGN.md`](DESIGN.md) |

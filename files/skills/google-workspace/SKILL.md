@@ -1,11 +1,11 @@
 ---
-name: gws
+name: google-workspace
 description: Google Workspace from the shell with Google's `gws` CLI - Gmail, Calendar, Drive, Docs, Sheets, Slides, Tasks and Contacts - read, search, create, update, delete. Use in Claude Code or Codex for any Google data (an email, an event, a file, a Doc or Sheet, a contact).
 ---
 
 # Google Workspace with `gws`
 
-One CLI for every Google service, already logged in on this Mac. Merged from the skills `gws generate-skills` (v0.22.5) writes (`gws-shared` + one per service): regenerating would split them again, so merge new output back into this file. On claude.ai the web UI uses Anthropic's `google-workspace` skill instead; it is hidden in Claude Code (`skillOverrides`, bootstrap-home).
+One CLI for every Google service, already logged in on this Mac. Merged from the skills `gws generate-skills` (v0.22.5) writes (`gws-shared` + one per service): regenerating would split them again, so merge new output back into this file. Anthropic's skill of the same name (claude.ai web, through its Google connector) is hidden in Claude Code by `skillOverrides` (bootstrap-home): this one replaces it here.
 
 ## Auth and syntax
 

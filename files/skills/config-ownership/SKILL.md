@@ -1,5 +1,5 @@
 ---
-name: claude-config-ownership
+name: config-ownership
 description: This machine's ownership map for ~/.claude/settings.json keys, and the managed-config-block convention used across its dotfiles. Use before hand-editing ~/.claude/settings.json, or before hand-editing a block inside ~/.zshrc, ~/.bashrc, or ~/.tmux.conf.
 ---
 

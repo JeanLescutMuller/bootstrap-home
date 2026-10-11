@@ -11,7 +11,7 @@ That split is what keeps the two from drifting apart:
 | | **entities** — files, folders, arrows, what calls what, what flows where, status (live / partial / broken / planned) | **assertions** — rules, thresholds, tunable values, traps |
 | must never contain | an imperative about the code, or a tunable number (a timeout, a worker count) | diagrams for a human |
 
-Structural counts ("four stages") are entities and are fine. A standing footer pointing at `AGENTS.md` and `TODO.md` is navigation, not a rule. **When a file is renamed, check whether a README diagram names it.**
+Structural counts ("four stages") are entities and are fine. A standing footer pointing at `AGENTS.md` is navigation, not a rule. **When a file is renamed, check whether a README diagram names it.**
 
 In Mermaid, use `classDef` to carry status as colour and put real filenames on the nodes and edges. Check [`mermaid_playground.md`](mermaid_playground.md) before using an unusual diagram type.
 
@@ -36,4 +36,4 @@ Example on this machine: `~/dev/agent-quota-maximizer/design/PIPELINE_MAP.html`.
 - **Status as colour, with a legend**, using the same four statuses everywhere: live, partial, broken, planned.
 - **Real filenames on boxes and edges**, so the page can be checked against the tree.
 - **No secrets, no production data**: the page may be shared (Claude can publish it as a private claude.ai artifact; the repo file stays the source).
-- **Sections:** header (name, one-line purpose, last-updated date) · the big picture (one diagram) · folder map · per-component status with legend · footer linking `AGENTS.md`, `TODO.md`, the design files.
+- **Sections:** header (name, one-line purpose, last-updated date) · the big picture (one diagram) · folder map · per-component status with legend · footer linking `AGENTS.md` and the design files.

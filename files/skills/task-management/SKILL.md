@@ -152,7 +152,7 @@ created_by: chan-lescut-macbook-pro, claude, <session UUID>   # or Jean
 | Todoist | Project = area; first description line `Stream: …`; links to events and emails | Todoist MCP (Claude) / Todoist app (ChatGPT) |
 | Google Calendar | Title contains the stream: `Bobi: Health - Sleep Apnea: <what> (<doctor>)` (keep the user's existing `Bobi:` prefix on the shared *Couple* calendar). Full address in **location**. Description: `Stream: …`, doctor/people, `Todoist: https://app.todoist.com/app/task/<id>` | `gws calendar` |
 | Gmail | Nested label `<Area>/<Topic>`, e.g. `Health/Sleep Apnea` | `gws gmail` (scope gmail.modify) |
-| Contacts | Contact label = area (e.g. `Health`); note `Stream: …` on doctors, offices, counterparts | `gws people` (see gws-people skill) |
+| Contacts | Contact label = area (e.g. `Health`); note `Stream: …` on doctors, offices, counterparts | `gws people` (skill `google-workspace`) |
 
 **Calendar colour per area** (event `colorId`): `Health` = **2 (Sage)**. Other areas have no colour yet: ask before choosing.
 

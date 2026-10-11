@@ -11,6 +11,8 @@ description: How to move, copy, deduplicate or delete data across this user's ma
 4. Before the biggest irreversible delete, do **one more independent check** unprompted: re-hash from scratch, look every file up in the backup's own lists.
 5. Ask before overwriting a secret (e.g. `credentials.json`); never print it, compare hashes only.
 
+NAS `babisnas`: UGREEN DXP4800 Plus (UGOS Pro = Debian 12), user `enrices`, key `~/.ssh/id_babisnas`, home LAN only; `/volume1/shared_raid1` (RAID1, 901G), `/volume2/shared_nvme1` (443G).
+
 Report each phase as a short table, then ask before the next one.
 
 Reusable tools: `~/dev/trading-bot/doc/data_inventory/tools/` (`hasher.py`, `snapwriter.py`, `snapcheck.py`, `delete_batch.py`); the 2026-10-10 migration that used them (23 M files, 0 lost): `~/dev/trading-bot/doc/data_inventory/migration_plan.md`.

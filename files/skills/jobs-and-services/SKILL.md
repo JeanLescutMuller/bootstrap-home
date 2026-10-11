@@ -1,5 +1,5 @@
 ---
-name: services
+name: jobs-and-services
 description: How services and scheduled jobs are created, changed, renamed and decommissioned on this user's machines (MacBook, VM H-Frank-1, GCP). Use whenever creating, changing, renaming, moving or removing a service, a scheduled or recurring job, a LaunchAgent or plist, a systemd service or timer, a cron job or a Cloud Scheduler entry, or an install.sh / uninstall.sh that installs one.
 ---
 

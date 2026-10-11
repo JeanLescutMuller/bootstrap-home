@@ -25,18 +25,17 @@ flowchart LR
 ```
 <project-name>/
 ├── AGENTS.md          rules for agents (CLAUDE.md → AGENTS.md)
-├── TODO.md            open work, by priority
 ├── doc/               companion files for the code
 └── src/               …
 ```
 
 ---
-Rules for agents: [`AGENTS.md`](AGENTS.md) · Open work: [`TODO.md`](TODO.md)
+Rules for agents: [`AGENTS.md`](AGENTS.md)
 
 <!-- ===== Short variant, when a README.html exists =====
 # <project-name>
 
 **<One line: what this does.>** The visual overview is [`README.html`](README.html) — open it in a browser (`open README.html`).
 
-Rules for agents: [`AGENTS.md`](AGENTS.md) · Open work: [`TODO.md`](TODO.md)
+Rules for agents: [`AGENTS.md`](AGENTS.md)
 -->

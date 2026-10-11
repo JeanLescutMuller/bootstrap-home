@@ -73,13 +73,12 @@ Keep the whole thing to a screenful. It is a map, not a report.
 
 # Development vs deployment
 
-Development (writing/editing code) happens on the MacBook only. The Debian VM, and any cloud targets, are deployment/runtime destinations — never write or edit code there directly. Which machine(s) a given project actually deploys to varies per-project (MacBook only, VM only, both, sometimes cloud too) — don't assume, check that project's own docs.
+Code is written and edited on the MacBook only. The VM and cloud targets only run deployed copies: never edit code there. Which machines a project deploys to varies: check that project's own docs.
 
 # Machine-specific
 
-- **macOS → Debian VM**: reachable via `ssh H-Frank-1` (alias in `~/.ssh/config`; Hostinger EC2, Debian 12). Setup/provisioning details live in `bootstrap-vm`, not here.
-- **macOS → home NAS**: reachable via `ssh babisnas` (alias in `~/.ssh/config`, key `~/.ssh/id_babisnas`, user `enrices`; UGREEN DXP4800 Plus, UGOS Pro = Debian 12). Home LAN only, not exposed to the internet (verified 2026-10-10). Data: `/volume1/shared_raid1` (RAID1, 901G), `/volume2/shared_nvme1` (443G). `sudo` needs a password, so ask the user for root tasks.
-- **Debian VM**: `~/opt/` (user's own tools) is distinct from root-owned `/opt/` (root-run systemd services, e.g. `/opt/auto-commit` as of 2026-08-24 — being migrated to user-scope `~/opt/` + `systemd --user`, since root/system scope should be the exception, not the default).
+- **VM**: `ssh H-Frank-1` (Hostinger, Debian 12), provisioned by `bootstrap-vm`. Its `~/opt/` holds the user's tools, run by `systemd --user`; root `/opt/` holds only system software.
+- **Home NAS**: `ssh babisnas` (home LAN only, Debian 12). `sudo` needs a password: ask the user for any root task.
 
 ## Machine name
 
@@ -101,19 +100,11 @@ Reuse these instead of rebuilding them; read the named file before depending on 
 
 # Keeping this file in sync
 
-When modifying this file, always consider modifying the bootstrap template at
-`~/dev/bootstrap-home/files/home_AGENTS.md` too, so the change persists across
-machines (this file is the deployed copy; that one is the source template).
+This file is deployed from `~/dev/bootstrap-home/files/home_AGENTS.md`: change that source too, or the next deploy loses the change.
 
 # Token-conscious execution
 
-The user of this machine has very few tokens available. For any job that might
-be long-running or will likely be repeated (building a binary, testing a whole
-project, deploying or installing something, etc.), always prefer writing a
-reusable bash script and executing it with stdout/stderr redirected to files,
-rather than streaming output through the model or driving the process step by
-step via the LLM. Inspect the log files afterward only as needed (e.g. tail on
-failure). Minimize token consumption wherever possible.
+The user has very few tokens. For anything long or repeated (a build, a full test run, a deploy, an install), write a reusable script, run it with stdout and stderr redirected to a log file, and read only what you need (e.g. the tail on failure); never stream long output through the model.
 
 # Working rules
 

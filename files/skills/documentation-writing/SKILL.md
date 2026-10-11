@@ -1,11 +1,11 @@
 ---
 name: documentation-writing
-description: Personal documentation conventions for every project on this machine — README.md / README.html for humans, AGENTS.md for agents (CLAUDE.md is a symlink to it), TODO.md, doc/ companion files, the project vocabulary (always in AGENTS.md), the design-stage files (CONSIDERATIONS.md, REQUIREMENTS.md, DESIGN.md), and Markdown formatting (one paragraph = one line). Use when writing or editing any .md file or HTML README, when designing or scoping a new project, when setting up or reorganising a project's documentation, or when managing a TODO.md.
+description: Personal documentation conventions for every project on this machine — README.md / README.html for humans, AGENTS.md for agents (CLAUDE.md is a symlink to it), doc/ companion files, the project vocabulary (always in AGENTS.md), the design-stage files (CONSIDERATIONS.md, REQUIREMENTS.md, DESIGN.md), and Markdown formatting (one paragraph = one line). Use when writing or editing any .md file or HTML README, when designing or scoping a new project, when setting up or reorganising a project's documentation.
 ---
 
 # Documentation writing
 
-This file holds only what every documentation task needs. **Read a reference file only when your task matches its row below** — the rest is not for you.
+This file holds only what every documentation task needs. Tasks, open work and to-do lists are not documentation: they belong to skill `task-management`, never to a file described here. **Read a reference file only when your task matches its row below** — the rest is not for you.
 
 ## Always: how to write
 
@@ -21,7 +21,6 @@ This file holds only what every documentation task needs. **Read a reference fil
 |---|---|---|---|
 | `AGENTS.md` (+ `CLAUDE.md` symlink) | agents | rules and the project vocabulary — **loaded by every session**, so kept small | writing or editing one, or adding a word → [`references/agents_md.md`](references/agents_md.md) |
 | `README.md` / `README.html` | humans | diagrams of what exists and what calls what; no rules | writing or editing one → [`references/readme.md`](references/readme.md) |
-| `TODO.md` | both | open items only, sorted by priority, stable IDs | adding, re-sorting or closing an item → [`references/todo_md.md`](references/todo_md.md) |
 | `CONSIDERATIONS.md` → `REQUIREMENTS.md` → `DESIGN.md` | both | what might matter → what the user gets → what we build and how | designing or scoping a project → [`references/design_files.md`](references/design_files.md) |
 | `doc/` | both | companion files for the production code | setting up a project's docs, adding a `doc/` file, moving or renaming files → [`references/project_layout.md`](references/project_layout.md) |
 

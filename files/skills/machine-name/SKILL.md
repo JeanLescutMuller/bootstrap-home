@@ -1,6 +1,6 @@
 ---
 name: machine-name
-description: The one rule and the two code snippets (bash, Python) that give "this machine's name" (chan-lescut-macbook-pro, H-Frank-1, GCP). Use whenever code needs the machine's or host's name - a key for stored data, a comparison, a display, a log line - instead of hostname, socket.gethostname() or platform.node().
+description: The rule and code snippets that give this machine's name (chan-lescut-macbook-pro, H-Frank-1, GCP). Use whenever code needs the machine or host name, instead of hostname or socket.gethostname().
 ---
 
 # Machine name

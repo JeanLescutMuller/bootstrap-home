@@ -79,7 +79,7 @@ while IFS= read -r agents; do
 
     words="$(budget_words "$agents")"
     if [ "$words" -gt "$AGENTS_FAIL_WORDS" ]; then
-        fail "$agents" "$words words (> $AGENTS_FAIL_WORDS): move explanations to doc/ or TODO.md"
+        fail "$agents" "$words words (> $AGENTS_FAIL_WORDS): move explanations to doc/"
     elif [ "$words" -gt "$AGENTS_WARN_WORDS" ]; then
         warn "$agents" "$words words, not counting ## Vocabulary (aim ≤ $AGENTS_WARN_WORDS)"
     fi
@@ -119,13 +119,6 @@ while IFS= read -r readme; do
     [ "$(basename "$(dirname "$readme")")" = "doc" ] &&
         fail "$readme" "a doc/ folder never holds a README.md — index it from the parent README"
 done < <(find_named 'README\.md')
-
-# --- TODO.md holds open items only ---
-while IFS= read -r todo; do
-    while IFS= read -r hit; do
-        warn "$todo" "line ${hit%%:*} keeps a done item — delete it (rule → AGENTS.md, evidence → doc/)"
-    done < <(strip_fences "$todo" | grep -nE '^#+ .*\b(Done|Completed|Resolved|Archive)\b|✅|~~[^~]+~~')
-done < <(find_named 'TODO\.md')
 
 # --- relative Markdown links resolve (templates are skipped: their links
 # are meant for the project they get copied into) ---
