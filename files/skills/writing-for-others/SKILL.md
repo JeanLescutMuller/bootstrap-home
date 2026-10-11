@@ -18,7 +18,7 @@ The reader must not be able to tell an AI drafted it. That comes from **content*
 - **Language and register of the thread**: answer in the language the other person used; match their length and formality. A WhatsApp reply is one or two lines, not a letter.
 - Lead with the point: the answer, the request, or the reason for writing. Then only what the reader doesn't already know.
 - Short plain words, active verbs, concrete details ("Tuesday 14:00 works", not "I remain at your disposal regarding scheduling").
-- If the user's own past messages to this person exist (Gmail sent, WhatsApp, LinkedIn), read two or three first and copy their greeting, sign-off, tone and length.
+- If the user's own past messages to this person exist (Gmail sent, WhatsApp, LinkedIn), read two or three first and copy their greeting, sign-off, tone and length, but never their UTF-8 emojis (§3).
 
 | Context | Default tone (until the user says otherwise) |
 |---|---|
@@ -41,11 +41,12 @@ Fix each one by rewriting the sentence around its point, not by swapping a word.
 | em dashes everywhere, bold, headings, bullet lists in a message | commas and periods; plain prose in messages |
 | chatbot residue: "I hope this finds you well", "Great question", "Feel free to reach out", "Let me know if you have any questions", "N'hésitez pas à…" | a real closing, or none |
 | stacked hedges, "serves as / boasts" instead of "is / has", trailing "-ing" clauses | simple verbs, one hedge only if needed |
+| UTF-8 emojis (🙂 😊 👋 🚀 ✅), even when the user's past messages contain some: they read as LLM-written | ASCII smileys such as `:)` or `:D`, or none |
 
 ## 4. Before it goes out
 
 1. Read it aloud as the user: would they say each sentence, and could they explain it if asked? If not, change it.
-2. Search the draft for the tells that survive most: contrasts, closers, triplets, dashes, stock words.
+2. Search the draft for the tells that survive most: contrasts, closers, triplets, dashes, stock words, UTF-8 emojis.
 3. Give the user the final text. Sending it is the channel's job (its own skill), with the user's OK.
 
 Sources: `~/dev/auto-apply/docs/human-writing-guide.md`; patterns adapted from blader/humanizer (MIT, https://github.com/blader/humanizer), itself based on Wikipedia's "Signs of AI writing".

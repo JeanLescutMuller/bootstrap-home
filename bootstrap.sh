@@ -48,6 +48,7 @@ DOTFILES=(
     "skills/google-workspace/SKILL.md:$HOME/.claude/skills/google-workspace/SKILL.md"
     "skills/linkedin/SKILL.md:$HOME/.claude/skills/linkedin/SKILL.md"
     "skills/writing-for-others/SKILL.md:$HOME/.claude/skills/writing-for-others/SKILL.md"
+    "skills/personal-context/SKILL.md:$HOME/.claude/skills/personal-context/SKILL.md"
     "skills/machine-name/SKILL.md:$HOME/.claude/skills/machine-name/SKILL.md"
     "skills/config-ownership/SKILL.md:$HOME/.agents/skills/config-ownership/SKILL.md"
     "skills/shell-scripting/SKILL.md:$HOME/.agents/skills/shell-scripting/SKILL.md"
@@ -60,6 +61,7 @@ DOTFILES=(
     "skills/google-workspace/SKILL.md:$HOME/.agents/skills/google-workspace/SKILL.md"
     "skills/linkedin/SKILL.md:$HOME/.agents/skills/linkedin/SKILL.md"
     "skills/writing-for-others/SKILL.md:$HOME/.agents/skills/writing-for-others/SKILL.md"
+    "skills/personal-context/SKILL.md:$HOME/.agents/skills/personal-context/SKILL.md"
     "skills/machine-name/SKILL.md:$HOME/.agents/skills/machine-name/SKILL.md"
 )
 
