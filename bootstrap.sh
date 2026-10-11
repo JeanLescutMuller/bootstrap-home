@@ -47,6 +47,7 @@ DOTFILES=(
     "skills/data-moves/SKILL.md:$HOME/.claude/skills/data-moves/SKILL.md"
     "skills/gws/SKILL.md:$HOME/.claude/skills/gws/SKILL.md"
     "skills/linkedin/SKILL.md:$HOME/.claude/skills/linkedin/SKILL.md"
+    "skills/writing-for-others/SKILL.md:$HOME/.claude/skills/writing-for-others/SKILL.md"
     "skills/machine-name/SKILL.md:$HOME/.claude/skills/machine-name/SKILL.md"
     "skills/claude-config-ownership/SKILL.md:$HOME/.agents/skills/claude-config-ownership/SKILL.md"
     "skills/shell-scripting/SKILL.md:$HOME/.agents/skills/shell-scripting/SKILL.md"
@@ -58,6 +59,7 @@ DOTFILES=(
     "skills/data-moves/SKILL.md:$HOME/.agents/skills/data-moves/SKILL.md"
     "skills/gws/SKILL.md:$HOME/.agents/skills/gws/SKILL.md"
     "skills/linkedin/SKILL.md:$HOME/.agents/skills/linkedin/SKILL.md"
+    "skills/writing-for-others/SKILL.md:$HOME/.agents/skills/writing-for-others/SKILL.md"
     "skills/machine-name/SKILL.md:$HOME/.agents/skills/machine-name/SKILL.md"
 )
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """What every Claude / Codex session loads at startup vs only on use, in tokens and in % of each context window.
 
-Run by hand:  python3 ~/dev/bootstrap-home/tools/context_inventory.py
+Run by hand:  python3 ~/dev/bootstrap-home/tools/context_inventory.py [--descriptions]
 Measures files only (instructions, memory, skills). MCP servers and Claude Code's built-in skills are not files here:
 they are listed at the end as a reminder, measure them from a session's own context if needed.
 """
@@ -9,6 +9,7 @@ import glob
 import json
 import os
 import re
+import sys
 from pathlib import Path
 
 HOME = Path.home()
@@ -87,36 +88,37 @@ def skill_dirs() -> dict:
     return d_skills
 
 
-l_rows = []  # (item, init tokens, on-use tokens, claude, codex)
+l_rows = []  # (item, init tokens, on-use tokens, claude, codex, description)
+SHOW_DESC = "--descriptions" in sys.argv
 
 # Instructions: ~/.claude/CLAUDE.md for Claude, ~/.codex/AGENTS.md for Codex (both symlinks to ~/AGENTS.md today)
 claude_md, codex_md = HOME / ".claude/CLAUDE.md", HOME / ".codex/AGENTS.md"
 same = claude_md.exists() and codex_md.exists() and claude_md.resolve() == codex_md.resolve()
 if same:
-    l_rows.append((f"instructions {claude_md.resolve()}", tokens(len(claude_md.read_text())), None, True, True))
+    l_rows.append((f"instructions {claude_md.resolve()}", tokens(len(claude_md.read_text())), None, True, True, ""))
 else:
     for f, c, x in [(claude_md, True, False), (codex_md, False, True)]:
         if f.exists():
-            l_rows.append((f"instructions {f}", tokens(len(f.read_text())), None, c, x))
+            l_rows.append((f"instructions {f}", tokens(len(f.read_text())), None, c, x, ""))
 mem = HOME / ".claude/projects/-Users-jeanlescut/memory/MEMORY.md"
 if mem.exists():
-    l_rows.append(("MEMORY.md (sessions started in ~)", tokens(len(mem.read_text())), None, True, False))
+    l_rows.append(("MEMORY.md (sessions started in ~)", tokens(len(mem.read_text())), None, True, False, ""))
 
 # skillOverrides (Claude only): "off" / "user-invocable-only" = not listed, "name-only" = no description
 d_over = json.loads((HOME / ".claude/settings.json").read_text()).get("skillOverrides") or {}
 for name, (f, c, x) in sorted(skill_dirs().items()):
     mode = d_over.get(name) or d_over.get(name.split(":")[-1]) or "on"
     if mode in ("off", "user-invocable-only") and not x:
-        l_rows.append((f"skill {name} (hidden: {mode})", 0, tokens(len(f.read_text(errors="ignore"))), c, x))
+        l_rows.append((f"skill {name} (hidden: {mode})", 0, tokens(len(f.read_text(errors="ignore"))), c, x, skill_description(f)))
         continue
     init = tokens(len(name) + (0 if mode == "name-only" else len(skill_description(f))) + SKILL_FRAMING)
-    l_rows.append((f"skill {name}", init, tokens(len(f.read_text(errors="ignore"))), c, x))
+    l_rows.append((f"skill {name}", init, tokens(len(f.read_text(errors="ignore"))), c, x, skill_description(f)))
 
 print(f"Windows: Claude {CLAUDE_WINDOW:,} · Codex {CODEX_WINDOW:,}   cells = tokens · Claude % · Codex %\n")
-print("| Item | At init (every session) | On use |")
-print("|---|---|---|")
-for item, init, use, c, x in l_rows:
-    print(f"| {item} | {cell(init, c, x)} | {cell(use, c, x)} |")
+print("| Item | At init (every session) | On use |" + (" Description |" if SHOW_DESC else ""))
+print("|---|---|---|" + ("---|" if SHOW_DESC else ""))
+for item, init, use, c, x, desc in l_rows:
+    print(f"| {item} | {cell(init, c, x)} | {cell(use, c, x)} |" + (f" {desc.replace('|', '/')} |" if SHOW_DESC else ""))
 tot_c = sum(r[1] for r in l_rows if r[3])
 tot_x = sum(r[1] for r in l_rows if r[4])
 print(f"| **Total at init (files)** | Claude {tot_c:,} · {100 * tot_c / CLAUDE_WINDOW:.2f}% · Codex {tot_x:,} · {100 * tot_x / CODEX_WINDOW:.2f}% | |")
