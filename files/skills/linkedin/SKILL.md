@@ -29,6 +29,7 @@ Each call starts a headless browser (a few seconds). One call at a time. `uvx mc
 | new message to a connection | `send_message` (`linkedin_username`, `message`, `confirm_send=true`) | **reply inside a thread, InMail**: Chrome |
 | connection request, accept | `connect_with_person` (`linkedin_username`, `note`) | withdraw: Chrome |
 | feed, posts | `get_feed`, `search_posts` | publish, comment, react: Chrome |
+| edit my own profile | none | skill `linkedin-profile` (Chrome) |
 
 Chrome = skill `claude-in-chrome`, on the user's logged-in session.
 
