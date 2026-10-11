@@ -1,9 +1,11 @@
 ---
 name: task-management
-description: Task management for everything the user and their agents need to do (life and all projects): how to create, hand off, complete and link tasks in Todoist (the current tool), and how to tie them to Gmail, Google Calendar and Contacts with a shared "stream" keyword. Use whenever creating, updating, completing or reviewing a Todoist task, when an agent wants to plan work for a later day, or when filing an email or calendar event that belongs to an ongoing topic (health, admin, home…).
+description: Task management for everything the user and their agents need to do (life and all projects): how to create, hand off, complete and link tasks in Todoist (the current tool), and how to tie them to Gmail, Google Calendar and Contacts with a shared "stream" keyword. Use whenever creating, updating, completing or reviewing a task, a to-do or a TODO item (Todoist or a repo's TODO/ folder), when an agent wants to plan work for a later day, or when filing an email or calendar event that belongs to an ongoing topic (health, admin, home…).
 ---
 
 # Task management: tasks for the user and agents
+
+**A production job is never a task**: anything scheduled (service, timer, job-runner job) stays off the board; work *about* a job (fix it, check its first run) is a task.
 
 **Todoist** (Free plan) is the one exhaustive list of everything the user and the agents must do: life and every project. Life tasks live only in Todoist. Repo tasks live as files in the repo's `TODO/` folder (format below) and are mirrored in Todoist. Gmail, Calendar and Contacts are linked with one shared keyword, the **stream**.
 

@@ -1,6 +1,6 @@
 # General conventions (MacBook + Debian VM)
 
-## Communication: optimize for speed
+## Answering the user (interactive sessions)
 
 The user has limited time, reads quickly, and does not read long prose. Make
 responses easy to scan and act on:
@@ -37,6 +37,15 @@ The user has repeatedly been lost by invented terminology. Therefore:
   project and the whole conversation. Renaming a concept mid-thread is a bug.
 - When using a project-specific term in a reply, assume the user does **not**
   remember it: re-gloss it in a few words (`amount_due` (how much to spend now)).
+- Plain words only: never "wholesale" or a word the user would have to decode.
+
+### Numbers, files and commands
+
+- Explain a method, formula or test with one tiny worked example: a table of concrete numbers.
+- Before comparing numbers, name each series once in a table and use only those names; every number says its unit (per trade, day, cycle…) and its statistic (max, median, sum…); gaps are relative (%), absolute values only as a footnote.
+- Token counts also as a % of Claude's window (1,000,000) and Codex's (258,400), 2 decimals; an inventory puts "at init" and "on use" in separate columns.
+- Name every script, notebook or file by its full path, and say which data it reads and writes.
+- A command for the user to run: the remote part of `ssh host '…'` is always single-quoted, or the Mac's shell expands `~` and `$` first.
 
 ### Re-orienting after a gap
 
@@ -56,10 +65,10 @@ If it has been more than roughly a day, open with a compact re-orientation
 
 Keep the whole thing to a screenful. It is a map, not a report.
 
-- `~/dev/` — all source repos, flat (no category subfolders).
-- `~/opt/<project>/` — deployed **and scheduled** runtime copy: what a launchd job / systemd unit / cron actually points at, plus the log/state/data it produces. Separate from the git source in `~/dev/<project>`. Everything that scheduled thing owns lives here as a real file — code, logs, state, and the scheduler/trigger definition itself (LaunchAgent `.plist`, systemd `.service`/`.timer`). The OS-mandated location (`~/Library/LaunchAgents/`, `~/.config/systemd/user/`) holds only a symlink pointing back into `~/opt/<project>/` — never a real file there. Ad-hoc, run-by-hand tooling (a one-off script, exploratory analysis, a recompute/migration helper) stays in `~/dev/<project>` and runs from there, even when it reads or writes that project's live `~/opt/` state — don't duplicate it into `~/opt/` just because it touches production data. `~/opt/` is for what a scheduler runs unattended, not for anything a human runs by hand.
-- `~/.local/bin/` — symlinks into `~/opt/<project>/`, never real files. Same symlink-only rule as the scheduler files above.
-- `~/dev/<x>` folder name must match the real GitHub repo name (check `git remote -v`, don't assume) — a drifted `~/opt/` copy name doesn't override this.
+# Folders
+
+- `~/dev/<repo>` — all source repos, flat; the folder name is the real GitHub repo name (`git remote -v`).
+- `~/opt/<repo>/` — only what a scheduler runs unattended, with its logs and state; the OS scheduler folders and `~/.local/bin/` hold only symlinks into it. Anything run by hand stays in `~/dev`.
 - Never leave the shell's working directory changed after a spontaneous `cd` — change back before finishing, or ask first. The statusline's git-status segment reads the shell's live cwd, so a stray `cd` breaks it for the rest of the session, not just that command.
 
 # Development vs deployment
@@ -74,52 +83,21 @@ Development (writing/editing code) happens on the MacBook only. The Debian VM, a
 
 ## Machine name
 
-**Rule:** `$JR_MACHINE_NAME` if set (containers, GCP, tests), else the OS's hand-set name — macOS `scutil --get HostName`, Linux `/etc/hostname` — cut at the first dot, case unchanged, must match `[A-Za-z0-9-]+` or it is an error (never a fallback). Today: `chan-lescut-macbook-pro`, `H-Frank-1`, `GCP`.
+Get "this machine's name" (`chan-lescut-macbook-pro`, `H-Frank-1`, `GCP`) only with the snippet in skill `machine-name` — never `hostname` or `socket.gethostname()`.
 
-Every project that needs "this machine's name" (a key for stored data, a comparison with a literal, a display) copies one of these two snippets **identically**, with the comment that points here; never `hostname`, `hostname -s/-f`, `socket.gethostname()`, `platform.node()` or `LocalHostName` (Bonjour adds `-1`/`-2` by itself; with no `HostName` set, the network renames the Mac — it did three times on 2026-10-08 and split stored data).
+# Shared projects
 
-```bash
-# This machine's name: "Machine name" in ~/AGENTS.md (copy it identically)
-m=${JR_MACHINE_NAME:-$(if [ "$(uname)" = Darwin ]; then scutil --get HostName; else cat /etc/hostname; fi 2>/dev/null)} || :
-m=${m%%.*}; [[ $m =~ ^[A-Za-z0-9-]+$ ]] || { echo "no machine name: macOS sudo scutil --set HostName <name>; Linux sudo hostnamectl set-hostname <name>" >&2; exit 1; }
-```
+Reuse these instead of rebuilding them; read the named file before depending on one. Never edit another project's repo from a session working on a different one: report the gap to the user.
 
-```python
-def machine_name() -> str:
-    """This machine's name: "Machine name" in ~/AGENTS.md (copy it identically)."""
-    name = (os.environ.get("JR_MACHINE_NAME") or (
-        subprocess.run(["scutil", "--get", "HostName"], capture_output=True, text=True).stdout
-        if sys.platform == "darwin" else Path("/etc/hostname").read_text())).strip().split(".")[0]
-    if not re.fullmatch(r"[A-Za-z0-9-]+", name):
-        raise RuntimeError("no machine name: macOS sudo scutil --set HostName <name>; Linux sudo hostnamectl set-hostname <name>")
-    return name
-```
-
-A display (status line, colour) replaces the error branch with `m='?'`. The name is fixed at provisioning: `bootstrap-home` checks the Mac's `HostName`, `bootstrap-vm` sets `/etc/hostname`. A new name for an existing machine = a migration of every store keyed by it (job-runner status/logs/dashboard conf, agent-usage-tracker `central/<machine>/` and `requests.machine`).
-
-# Monitoring
-
-- **Statusline shared data**: Claude and Codex use the lazy cache under
-  `~/opt/agent-statusline/state` (deployed by the independent `agent-statusline`
-  project, not bootstrap-home). A renderer reads cached hostname, Git, and
-  memory data; when dynamic data is stale, only the renderer that atomically
-  acquires its shared lock performs the bounded refresh. Other sessions
-  immediately keep displaying the previous value. Usage tracking (quota
-  percent, tokens, spend, for both Claude and Codex) is a separate project,
-  `agent-usage-tracker` (`~/opt/agent-usage-tracker/`), split back out of
-  `agent-statusline` on 2026-09-30 (it had absorbed the former
-  `agent-quota-tracker` on 2026-08-31). Claude's primary quota path is free:
-  every Claude render pipes its stdin payload (which carries live
-  `rate_limits`) into the tracker's `src/statusline_payload_reader.py`,
-  which stores it and prints the account's freshest reading from any
-  session, poller or machine (the `latest` view of its
-  `data/claude/account_quotas.db`, a passed reset at 0%); the statusline
-  displays that line. A job-runner job polls only when no reading is fresh
-  enough, and the Mac syncs the readings with the VM every 2 min. Codex
-  relies on its own scheduled poller plus Codex's local session files.
-  Anything else reading the tracker's data follows its `FOR_READERS.md`.
-  Either project works without the other. See
-  `agent-usage-tracker`'s README ("Contract with agent-statusline").
+| Project (`~/dev/…`) | What it gives the others | Read |
+|---|---|---|
+| `bootstrap-home` | Mac/home setup: dotfiles, shared skills, this file | README |
+| `bootstrap-vm` | provisioning of the VM `H-Frank-1` | README |
+| `job-runner` | the wrapper for every scheduled job, statuses on a phone dashboard | DESIGN.md |
+| `agent-statusline` | Claude/Codex status line and its shared cache `~/opt/agent-statusline/state` | README |
+| `agent-usage-tracker` | quota %, tokens and $ for Claude and Codex, per machine | `FOR_READERS.md` |
+| `agent-session-manager` (`asm`) | session search, sync and resume across machines and agents | README |
+| `agent-notify` | terminal notifications for concurrent sessions | README |
 
 # Keeping this file in sync
 
@@ -137,6 +115,9 @@ rather than streaming output through the model or driving the process step by
 step via the LLM. Inspect the log files afterward only as needed (e.g. tail on
 failure). Minimize token consumption wherever possible.
 
-# Task management
+# Working rules
 
-All the user's tasks, life and every project, live in one place, currently **Todoist**; a repo's tasks are files in its `TODO/` folder (one per task), mirrored in Todoist. Before creating, claiming or completing any task, setting a reminder for later, or filing an email/calendar event for an ongoing topic, load the **`task-management`** skill. Key rules: every task has an owner (`Jean`, `any_agent`, `claude`, `chatgpt`); a future check is a dated task, never only a private reminder; mark `in-progress` before working and complete only with proof.
+- Delete named files one at a time, by literal path, as their own step after looking at them; never `rm` a glob or a variable path, never inside a long command chain.
+- Design: propose removals before additions; a new parameter names the step that owns it and the measurement that justifies it; measured values over hard-coded constants.
+- Time fields are `ts` (Unix epoch seconds) and `dt` (ISO 8601 UTC), first in every row, table or schema.
+- The ntfy phone topic is for defcon-alert alarms only: never send anything to it, not even a test, unless the user asks in that very message.

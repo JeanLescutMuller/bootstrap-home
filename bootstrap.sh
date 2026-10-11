@@ -44,6 +44,10 @@ DOTFILES=(
     "skills/patch-statusline/SKILL.md:$HOME/.claude/skills/patch-statusline/SKILL.md"
     "skills/task-management/SKILL.md:$HOME/.claude/skills/task-management/SKILL.md"
     "skills/services/SKILL.md:$HOME/.claude/skills/services/SKILL.md"
+    "skills/data-moves/SKILL.md:$HOME/.claude/skills/data-moves/SKILL.md"
+    "skills/gws/SKILL.md:$HOME/.claude/skills/gws/SKILL.md"
+    "skills/linkedin/SKILL.md:$HOME/.claude/skills/linkedin/SKILL.md"
+    "skills/machine-name/SKILL.md:$HOME/.claude/skills/machine-name/SKILL.md"
     "skills/claude-config-ownership/SKILL.md:$HOME/.agents/skills/claude-config-ownership/SKILL.md"
     "skills/shell-scripting/SKILL.md:$HOME/.agents/skills/shell-scripting/SKILL.md"
     "skills/python-coding/SKILL.md:$HOME/.agents/skills/python-coding/SKILL.md"
@@ -51,6 +55,10 @@ DOTFILES=(
     "skills/patch-statusline/SKILL.md:$HOME/.agents/skills/patch-statusline/SKILL.md"
     "skills/task-management/SKILL.md:$HOME/.agents/skills/task-management/SKILL.md"
     "skills/services/SKILL.md:$HOME/.agents/skills/services/SKILL.md"
+    "skills/data-moves/SKILL.md:$HOME/.agents/skills/data-moves/SKILL.md"
+    "skills/gws/SKILL.md:$HOME/.agents/skills/gws/SKILL.md"
+    "skills/linkedin/SKILL.md:$HOME/.agents/skills/linkedin/SKILL.md"
+    "skills/machine-name/SKILL.md:$HOME/.agents/skills/machine-name/SKILL.md"
 )
 
 # Multi-file skills: every file under the skill folder, to both agent homes.
@@ -165,6 +173,7 @@ _migrate_legacy_dev_instructions() {
 RENAMED_SKILLS=(
     "todoist-tasks"
     "taskforce"
+    "gws-people"
 )
 
 _remove_renamed_skills() {

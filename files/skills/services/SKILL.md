@@ -17,6 +17,8 @@ description: How services and scheduled jobs are created, changed, renamed and d
 
 - **Development on the Mac only**; the VM and GCP are deploy targets. Never edit code on the VM.
 - **Real files in `~/opt/<repo>/`**: code, state, logs and the trigger files themselves. The OS folders hold only symlinks into it: `~/Library/LaunchAgents/<name>.plist`, `~/.config/systemd/user/<name>.{service,timer}`; `~/.local/bin/` too.
+- **Only what a scheduler runs goes to `~/opt/`.** A run-by-hand tool (one-off script, analysis, recompute or migration helper) stays in `~/dev/<repo>` and runs from there, even when it reads or writes the live `~/opt/<repo>/` data.
+- **No hard-coded time windows** ("08:00–22:00") to dodge bad conditions (lid closed, Chrome unavailable): the entrypoint checks its own environment and returns its exit code.
 - **Name `com.jeanlescut.<repo>[.<job>]`**: `<repo>` exactly as on GitHub (`git remote -v`), `.<job>` only when the project has several; the same name on every machine; the launchd `Label` is the file name.
 - **User scope only**: never `/etc/systemd/system/`, `/Library/LaunchDaemons/` or a root crontab unless the job truly needs root (ask the user first). The VM has no cron installed: use systemd timers.
 - **The project's `install.sh` writes its triggers**: idempotent and self-migrating (it removes its own former names and files). Linux: `loginctl enable-linger "$USER"` best-effort.

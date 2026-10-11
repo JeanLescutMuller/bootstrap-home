@@ -62,6 +62,15 @@ with open(settings_path, "w") as f:
     fi
 }
 
-for key in respondToBashCommands theme statusLine cleanupPeriodDays; do
+# claudeMdExcludes: ~/.claude/CLAUDE.md is a symlink to ~/AGENTS.md, which
+# Claude would also load from the parent folders of any session under ~ -
+# the same file twice in every session. Skip the parent-folder copy.
+# autoMemoryEnabled false: durable facts go in an AGENTS.md or a skill, never in
+# Claude's private memory files.
+# skillOverrides: hides skills that only work elsewhere (Anthropic's
+# google-workspace needs claude.ai's Google connector, here the gws skill does it;
+# built-in-browser and computer-use need the desktop app; chrome-browser repeats
+# the built-in claude-in-chrome; docs needs the Claude Docs MCP, off here).
+for key in respondToBashCommands theme statusLine cleanupPeriodDays claudeMdExcludes autoMemoryEnabled skillOverrides; do
     _check_or_set_json "$key"
 done
