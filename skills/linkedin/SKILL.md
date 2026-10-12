@@ -10,7 +10,7 @@ description: Any LinkedIn lookup or action - jobs, people, profiles, companies, 
 | Method | How | Limits |
 |---|---|---|
 | **Chrome** | skill `claude-in-chrome`, the user's Chrome logged in to LinkedIn: deviceId `331a94e7-f123-4e09-a755-cdc63980187f` (the "Job Search" profile, shared with auto-apply). Own tab, closed at the end. | Chrome must be running. Pages load slowly: wait or zoom before `get_page_text` (it fails on a page still loading) and before clicking a menu (a click on a page still loading is ignored: check it opened, retry). Typing can drop letters: zoom and read before Send or Save. |
-| **MCP server** | stickerdaniel/linkedin-mcp-server: a headless browser with the login copied from Chrome (`~/.linkedin-mcp/profile/`), called from the shell with `li` below. Not registered as an MCP: its tool names would load in every session. | 10-30 s per call, one call at a time. **Each call opens a real browser window** ("Google Chrome for Testing": the server avoids true headless mode, which LinkedIn detects) that takes the keyboard focus from the user's app for the whole call (3-8 s measured). `li` runs `scripts/focus_guard.js`, which gives the focus back to the app that had it within ~0.2 s; never call the server without it. `--status` and `tools/list` without `li` take focus too (status) or not (tools/list). Breaks when LinkedIn changes its pages. **Its message tools mark conversations read** (below). |
+| **MCP server** | stickerdaniel/linkedin-mcp-server: its own browser with the login copied from Chrome (`~/.linkedin-mcp/profile/`), called from the shell with `li` below. Not registered as an MCP: its tool names would load in every session. | 10-30 s per call, one call at a time. **Each call opens a real browser window** ("Google Chrome for Testing": the server avoids true headless mode, which LinkedIn detects) that takes the keyboard focus from the user's app for the whole call (3-8 s measured). `li` and `guarded` run `scripts/focus_guard.js`, which gives the focus back to the app that had it within ~0.2 s; never start the server without one of them. Breaks when LinkedIn changes its pages. **Its message tools mark conversations read** (below). |
 | **Public pages** | `curl` / WebFetch on pages that need no login (examples in the table below) | No people search, no messages, profiles only partly shown. Blocked if called too often: pause ~1.5 s between calls. |
 | **Web search** | `site:linkedin.com/in "<company>" "<role>"` | Only what search engines indexed. |
 | **Gmail** | skill `google-workspace`, `from:jobalerts-noreply@linkedin.com` | Only what LinkedIn emails (job alerts tested; message notifications not). |
@@ -18,14 +18,15 @@ description: Any LinkedIn lookup or action - jobs, people, profiles, companies, 
 | Official API | none | ❌ Messages, people search and profile edits are open only to LinkedIn partners. |
 
 ```bash
+guarded() { osascript -l JavaScript ~/.claude/skills/linkedin/scripts/focus_guard.js 300 2>/dev/null & local g=$!
+  "$@"; local rc=$?; kill $g 2>/dev/null; return $rc; }   # gives the keyboard focus back (see Methods)
 li() { local t=$1; shift; local a=(); for kv; do a+=(--tool-arg "$kv"); done
-  osascript -l JavaScript ~/.claude/skills/linkedin/scripts/focus_guard.js 300 2>/dev/null & local g=$!
-  UV_HTTP_TIMEOUT=300 npx -y @modelcontextprotocol/inspector@0.17.2 --cli uvx mcp-server-linkedin@latest \
-    --method tools/call --tool-name "$t" "${a[@]}" 2>/dev/null; kill $g 2>/dev/null; }
+  UV_HTTP_TIMEOUT=300 guarded npx -y @modelcontextprotocol/inspector@0.17.2 --cli uvx mcp-server-linkedin@latest \
+    --method tools/call --tool-name "$t" "${a[@]}" 2>/dev/null; }
 li search_people keywords="ml manager ads" current_company=Meta location=London   # JSON: .content[0].text
 ```
 
-`uvx mcp-server-linkedin@latest --status` checks the login (👍). Not logged in: the user runs once `uvx mcp-server-linkedin@latest --import-from-browser chrome`.
+`guarded uvx mcp-server-linkedin@latest --status` checks the login (👍). Not logged in: the user runs once `uvx mcp-server-linkedin@latest --import-from-browser chrome`.
 
 ## Which method for which feature
 
