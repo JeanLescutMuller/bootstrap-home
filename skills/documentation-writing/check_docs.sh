@@ -81,10 +81,10 @@ while IFS= read -r agents; do
     done
     [ "$chain" -gt "$CHAIN_WARN_WORDS" ] && warn "$agents" "loaded chain is $chain words (aim ≤ $CHAIN_WARN_WORDS)"
 
-    if [ -f "$dir/README.html" ] && [ ! -f "$dir/README.md" ]; then
-        fail "$dir/README.html" "needs a short README.md stub linking to it"
-    elif [ ! -f "$dir/README.md" ]; then
-        warn "$dir/." "has AGENTS.md but no README.md / README.html"
+    if [ -f "$dir/README.html" ] && [ -f "$dir/README.md" ]; then
+        fail "$dir/README.md" "one README per folder: fold it into README.html, then delete it"
+    elif [ ! -f "$dir/README.md" ] && [ ! -f "$dir/README.html" ]; then
+        warn "$dir/." "has AGENTS.md but no README.html / README.md"
     fi
 
     # A paired README holds entities only: no imperatives, no tunable numbers.

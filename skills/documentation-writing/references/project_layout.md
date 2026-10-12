@@ -4,7 +4,7 @@
 
 | File | Reader | Loaded |
 |---|---|---|
-| `README.md` or `README.html` | a human only | when a person opens the folder |
+| `README.html` or `README.md`, never both | a human only | when a person opens the folder |
 | `AGENTS.md` | an agent only | **automatically, by every session** |
 | `doc/` | both | on demand |
 | `lib/` | — | code scoped to this folder |
@@ -35,7 +35,7 @@ Everything an agent or a human may need about how the code works that is too lon
 |---|---|
 | a real `CLAUDE.md` (merge it into `AGENTS.md`) | `AGENTS.md` over 400 words, or its loaded chain over 1,900 (`## Vocabulary` sections are not counted) |
 | `AGENTS.md` over 600 words | no README beside an `AGENTS.md`; a `CLAUDE.md` symlink (remove it); a root `AGENTS.md` with no `## Vocabulary` table |
-| `README.html` without a `README.md` stub | a README line that looks like a rule or a tunable number |
+| a `README.html` and a `README.md` in the same folder (fold the Markdown into the page, delete it) | a README line that looks like a rule or a tunable number |
 | a `README.md` inside a `doc/` folder | a task list in any file (tasks: skill `task-management`) |
 | a broken relative Markdown link | |
 

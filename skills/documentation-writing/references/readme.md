@@ -21,7 +21,7 @@ In Mermaid, use `classDef` to carry status as colour and put real filenames on t
 
 The user prefers a graphical `README.html`: diagrams, colours, status at a glance. A plain `README.md` alone only when there is nothing to draw (one script, one file).
 
-GitHub and VS Code render a `README.md` automatically but show a `README.html` as raw code, so **a `README.html` always comes with a 3-line `README.md` stub** that names the project and links to it (short variant at the bottom of [`../templates/README.template.md`](../templates/README.template.md)).
+**One README per folder, never two**: a `README.html` or a `README.md`, not both (the user, 2026-10-12). No `README.md` stub beside a `README.html`: a second entry point only drifts. When a project moves to `README.html`, fold everything its `README.md` said into the page, then delete the `README.md`. Accepted cost: GitHub and VS Code show a `README.html` as raw code; it is opened in a browser (`open README.html`).
 
 ### Building a `README.html`
 

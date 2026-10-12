@@ -1,5 +1,5 @@
 <!-- For a human, read years later by someone who has forgotten everything. Diagrams, not prose (prose ≤ ~150 words). Entities only: files, folders, arrows, status — never a rule or a tunable number (those live in AGENTS.md). -->
-<!-- If this project has a README.html, replace this whole file with the short variant at the bottom. -->
+<!-- Only when there is nothing to draw: otherwise a README.html instead (templates/README.template.html), never both. -->
 
 # <project-name>
 
@@ -31,11 +31,3 @@ flowchart LR
 
 ---
 Rules for agents: [`AGENTS.md`](AGENTS.md)
-
-<!-- ===== Short variant, when a README.html exists =====
-# <project-name>
-
-**<One line: what this does.>** The visual overview is [`README.html`](README.html) — open it in a browser (`open README.html`).
-
-Rules for agents: [`AGENTS.md`](AGENTS.md)
--->
