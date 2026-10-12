@@ -69,6 +69,15 @@ Keep the whole thing to a screenful. It is a map, not a report.
 
 - `~/dev/<repo>` — all source repos, flat; the folder name is the real GitHub repo name (`git remote -v`).
 - `~/opt/<repo>/` — only what a scheduler runs unattended, with its logs and state; the OS scheduler folders and `~/.local/bin/` hold only symlinks into it. Anything run by hand stays in `~/dev`.
+- Symlinks, never copies, outside a repo. Each repo's `install.sh` creates its links and its `uninstall.sh` removes them (only links pointing into that repo); never make or delete one by hand. Same rule on every machine:
+
+  | Link | Points to |
+  |---|---|
+  | `~/.local/bin/<tool>`, OS scheduler units | `~/opt/<repo>/…` (the deployed copy) |
+  | `~/.claude/skills/<name>`, `~/.agents/skills/<name>` | `~/dev/<repo>/skills/<name>/` (the clone) |
+  | `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md` | `~/dev/bootstrap-home/files/home_AGENTS.md` (this file) |
+
+  A skill belongs to the repo of the tool it serves; one that serves no project lives in `bootstrap-home`. Off the MacBook, `~/dev` clones are pull-only.
 - Never leave the shell's working directory changed after a spontaneous `cd` — change back before finishing, or ask first. The statusline's git-status segment reads the shell's live cwd, so a stray `cd` breaks it for the rest of the session, not just that command.
 
 # Development vs deployment
@@ -86,7 +95,7 @@ Get "this machine's name" (`chan-lescut-macbook-pro`, `H-Frank-1`, `GCP`) only w
 
 # Shared projects
 
-Reuse these instead of rebuilding them; read the named file before depending on one. Never edit another project's repo from a session working on a different one: report the gap to the user.
+Reuse these instead of rebuilding them; read the named file before depending on one. Edit another project's repo only when the user asks for it; otherwise report the gap to them.
 
 | Project (`~/dev/…`) | What it gives the others | Read |
 |---|---|---|
@@ -98,9 +107,9 @@ Reuse these instead of rebuilding them; read the named file before depending on 
 | `agent-session-manager` (`asm`) | session search, sync and resume across machines and agents | README |
 | `agent-notify` | terminal notifications for concurrent sessions | README |
 
-# Keeping this file in sync
+# Editing this file
 
-This file is deployed from `~/dev/bootstrap-home/files/home_AGENTS.md`: change that source too, or the next deploy loses the change.
+`~/.claude/CLAUDE.md` and `~/.codex/AGENTS.md` are symlinks to `~/dev/bootstrap-home/files/home_AGENTS.md`: one file, edited and committed there.
 
 # Token-conscious execution
 
@@ -109,6 +118,7 @@ The user has very few tokens. For anything long or repeated (a build, a full tes
 # Working rules
 
 - Move fast, in parallel: never make the user wait hours or days on a check (a scheduled run, a second success). Assume it works, file the check as a dated task, and keep developing; act on the result when it comes.
+- When an agent works inside the repo of another project, it commits its work there before finishing: only its own files, never a push, never left uncommitted.
 - Delete named files one at a time, by literal path, as their own step after looking at them; never `rm` a glob or a variable path, never inside a long command chain.
 - Design: propose removals before additions; a new parameter names the step that owns it and the measurement that justifies it; measured values over hard-coded constants.
 - Time fields are `ts` (Unix epoch seconds) and `dt` (ISO 8601 UTC), first in every row, table or schema.

@@ -91,7 +91,7 @@ def skill_dirs() -> dict:
 l_rows = []  # (item, init tokens, on-use tokens, claude, codex, description)
 SHOW_DESC = "--descriptions" in sys.argv
 
-# Instructions: ~/.claude/CLAUDE.md for Claude, ~/.codex/AGENTS.md for Codex (both symlinks to ~/AGENTS.md today)
+# Instructions: ~/.claude/CLAUDE.md for Claude, ~/.codex/AGENTS.md for Codex (both symlinks to ~/dev/bootstrap-home/files/home_AGENTS.md)
 claude_md, codex_md = HOME / ".claude/CLAUDE.md", HOME / ".codex/AGENTS.md"
 same = claude_md.exists() and codex_md.exists() and claude_md.resolve() == codex_md.resolve()
 if same:

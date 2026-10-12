@@ -62,9 +62,6 @@ with open(settings_path, "w") as f:
     fi
 }
 
-# claudeMdExcludes: ~/.claude/CLAUDE.md is a symlink to ~/AGENTS.md, which
-# Claude would also load from the parent folders of any session under ~ -
-# the same file twice in every session. Skip the parent-folder copy.
 # autoMemoryEnabled false: durable facts go in an AGENTS.md or a skill, never in
 # Claude's private memory files.
 # pluginConfigs: Claude reads every AGENTS.md even if a CLAUDE.md sits on the
@@ -74,6 +71,28 @@ with open(settings_path, "w") as f:
 # built-in-browser and computer-use need the desktop app; chrome-browser repeats
 # the built-in claude-in-chrome; docs needs the Claude Docs MCP, off here; docx/pptx/xlsx: no Microsoft
 # Office on this machine).
-for key in respondToBashCommands theme statusLine cleanupPeriodDays claudeMdExcludes autoMemoryEnabled skillOverrides pluginConfigs; do
+for key in respondToBashCommands theme statusLine cleanupPeriodDays autoMemoryEnabled skillOverrides pluginConfigs; do
     _check_or_set_json "$key"
+done
+
+# Keys this module set before and no longer wants: removed. claudeMdExcludes
+# skipped ~/AGENTS.md, a copy of ~/.claude/CLAUDE.md that no longer exists.
+for key in claudeMdExcludes; do
+    if ! KEY="$key" SETTINGS="$SETTINGS" python3 -c 'import json, os, sys; sys.exit(os.environ["KEY"] not in json.load(open(os.environ["SETTINGS"])))' 2>/dev/null; then
+        ok "$key (unset)"
+    elif [ "$INSTALL" = "false" ]; then
+        skip "remove retired $key"
+    else
+        KEY="$key" SETTINGS="$SETTINGS" python3 -c '
+import json, os
+path = os.environ["SETTINGS"]
+with open(path) as f:
+    data = json.load(f)
+del data[os.environ["KEY"]]
+with open(path, "w") as f:
+    json.dump(data, f, indent=2)
+    f.write("\n")
+'
+        installed "removed retired $key"
+    fi
 done

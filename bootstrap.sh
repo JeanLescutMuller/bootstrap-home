@@ -36,45 +36,15 @@ fi
 DOTFILES=(
     "vimrc:$HOME/.vimrc"
     "tmux.conf:$HOME/.tmux.conf"
-    "home_AGENTS.md:$HOME/AGENTS.md"
-    "skills/config-ownership/SKILL.md:$HOME/.claude/skills/config-ownership/SKILL.md"
-    "skills/shell-scripting/SKILL.md:$HOME/.claude/skills/shell-scripting/SKILL.md"
-    "skills/python-coding/SKILL.md:$HOME/.claude/skills/python-coding/SKILL.md"
-    "skills/jupyter-notebooks/SKILL.md:$HOME/.claude/skills/jupyter-notebooks/SKILL.md"
-    "skills/patch-statusline/SKILL.md:$HOME/.claude/skills/patch-statusline/SKILL.md"
-    "skills/task-management/SKILL.md:$HOME/.claude/skills/task-management/SKILL.md"
-    "skills/jobs-and-services/SKILL.md:$HOME/.claude/skills/jobs-and-services/SKILL.md"
-    "skills/data-moves/SKILL.md:$HOME/.claude/skills/data-moves/SKILL.md"
-    "skills/google-workspace/SKILL.md:$HOME/.claude/skills/google-workspace/SKILL.md"
-    "skills/linkedin/SKILL.md:$HOME/.claude/skills/linkedin/SKILL.md"
-    "skills/writing-for-others/SKILL.md:$HOME/.claude/skills/writing-for-others/SKILL.md"
-    "skills/personal-context/SKILL.md:$HOME/.claude/skills/personal-context/SKILL.md"
-    "skills/machine-name/SKILL.md:$HOME/.claude/skills/machine-name/SKILL.md"
-    "skills/config-ownership/SKILL.md:$HOME/.agents/skills/config-ownership/SKILL.md"
-    "skills/shell-scripting/SKILL.md:$HOME/.agents/skills/shell-scripting/SKILL.md"
-    "skills/python-coding/SKILL.md:$HOME/.agents/skills/python-coding/SKILL.md"
-    "skills/jupyter-notebooks/SKILL.md:$HOME/.agents/skills/jupyter-notebooks/SKILL.md"
-    "skills/patch-statusline/SKILL.md:$HOME/.agents/skills/patch-statusline/SKILL.md"
-    "skills/task-management/SKILL.md:$HOME/.agents/skills/task-management/SKILL.md"
-    "skills/jobs-and-services/SKILL.md:$HOME/.agents/skills/jobs-and-services/SKILL.md"
-    "skills/data-moves/SKILL.md:$HOME/.agents/skills/data-moves/SKILL.md"
-    "skills/google-workspace/SKILL.md:$HOME/.agents/skills/google-workspace/SKILL.md"
-    "skills/linkedin/SKILL.md:$HOME/.agents/skills/linkedin/SKILL.md"
-    "skills/writing-for-others/SKILL.md:$HOME/.agents/skills/writing-for-others/SKILL.md"
-    "skills/personal-context/SKILL.md:$HOME/.agents/skills/personal-context/SKILL.md"
-    "skills/machine-name/SKILL.md:$HOME/.agents/skills/machine-name/SKILL.md"
 )
 
-# Multi-file skills: every file under the skill folder, to both agent homes.
-for _skill_file in $(cd "$SCRIPT_DIR/files" && find skills/documentation-writing -type f | sort); do
-    DOTFILES+=("$_skill_file:$HOME/.claude/$_skill_file" "$_skill_file:$HOME/.agents/$_skill_file")
-done
-
-# Agent-specific compatibility names point to the shared canonical files.
+# Agent instructions and skills are symlinks into this clone (~/dev/bootstrap-home
+# on every machine), never copies: one file, edited in git. uninstall.sh removes them.
 AGENT_INSTRUCTION_LINKS=(
-    "$HOME/AGENTS.md:$HOME/.claude/CLAUDE.md"
-    "$HOME/AGENTS.md:$HOME/.codex/AGENTS.md"
+    "$SCRIPT_DIR/files/home_AGENTS.md:$HOME/.claude/CLAUDE.md"
+    "$SCRIPT_DIR/files/home_AGENTS.md:$HOME/.codex/AGENTS.md"
 )
+SKILL_HOMES=("$HOME/.claude/skills" "$HOME/.agents/skills")
 
 # The dev-wide instructions were merged into ~/AGENTS.md. Remove only the
 # exact file this project used to deploy and its matching compatibility link;
@@ -138,10 +108,54 @@ _deploy_instruction_link() {
     fi
 
     mkdir -p "$(dirname "$link")"
-    _backup_before_overwrite "$link"
+    [ -L "$link" ] || _backup_before_overwrite "$link"
     [ -e "$link" ] || [ -L "$link" ] && rm "$link"
     ln -s "$src" "$link"
     installed "$link"
+}
+
+# A skill folder of this repo -> a symlink in each agent's skill folder. A real
+# folder already there is replaced only when it is an old copy of the same skill
+# (identical but for *.bak); anything else is preserved, with a warning.
+_deploy_skill_link() {
+    local src="$1" home link
+    for home in "${SKILL_HOMES[@]}"; do
+        link="$home/$(basename "$src")"
+        if [ -L "$link" ] && [ "$(readlink "$link")" = "$src" ]; then
+            ok "$link"
+            continue
+        fi
+        if [ -e "$link" ] && [ ! -L "$link" ] && ! diff -rq -x '*.bak' "$link" "$src" >/dev/null 2>&1; then
+            warn "$link is a real folder that differs from $src - preserving it, not linked"
+            continue
+        fi
+        if [ "$INSTALL" = "false" ]; then
+            skip "$link"
+            continue
+        fi
+        mkdir -p "$home"
+        [ -L "$link" ] && rm "$link"
+        [ -d "$link" ] && rm -r "$link"
+        ln -s "$src" "$link"
+        installed "$link"
+    done
+}
+
+# ~/AGENTS.md was this project's deployed copy of files/home_AGENTS.md, now
+# replaced by the symlinks above. Remove it only while it still matches.
+_remove_home_agents_copy() {
+    local copy="$HOME/AGENTS.md"
+    [ -f "$copy" ] && [ ! -L "$copy" ] || return 0
+    if ! diff -q "$copy" "$SCRIPT_DIR/files/home_AGENTS.md" >/dev/null 2>&1; then
+        warn "$copy differs from files/home_AGENTS.md - preserving it (merge it there, then delete it)"
+        return
+    fi
+    if [ "$INSTALL" = "false" ]; then
+        skip "remove old copy $copy"
+        return
+    fi
+    rm "$copy"
+    installed "removed old copy $copy"
 }
 
 _migrate_legacy_dev_instructions() {
@@ -329,8 +343,14 @@ for entry in "${AGENT_INSTRUCTION_LINKS[@]}"; do
     _deploy_instruction_link "${entry%%:*}" "${entry#*:}"
 done
 
+_remove_home_agents_copy
 _migrate_legacy_dev_instructions
 _remove_renamed_skills
+
+step "skills"
+for src in "$SCRIPT_DIR"/skills/*/; do
+    _deploy_skill_link "${src%/}"
+done
 
 # The machine's name is its hand-set HostName ("Machine name" in
 # files/home_AGENTS.md): without one, macOS takes it from the network and it
