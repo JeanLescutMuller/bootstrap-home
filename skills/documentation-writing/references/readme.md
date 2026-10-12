@@ -2,6 +2,8 @@
 
 Written to be understood **years later by someone who has forgotten everything**. Diagrams, not prose: a pipeline is a diagram, a folder map is a tree, a comparison is a table. Prose ≤ ~150 words; **no limit on diagrams**. Agents are not required to read it.
 
+**Two readers, two files, repetition allowed.** The README is for a human, `AGENTS.md` for an agent. `AGENTS.md` is self-sufficient (an agent never needs the README), so the same thing — a file, a flow, a stage — may appear in both, each written for its reader. The split below keeps that repetition harmless: only entities may repeat; rules and numbers live in `AGENTS.md` alone. (The user chose this on 2026-10-07 over "no repetition, agents read the README too", which would make every agent pay for pictures drawn for a human.)
+
 ## It shows things; `AGENTS.md` states rules
 
 That split is what keeps the two from drifting apart:
@@ -15,14 +17,9 @@ Structural counts ("four stages") are entities and are fine. A standing footer p
 
 In Mermaid, use `classDef` to carry status as colour and put real filenames on the nodes and edges. Check [`mermaid_playground.md`](mermaid_playground.md) before using an unusual diagram type.
 
-## `README.md` or `README.html` — you decide
+## `README.html` by default
 
-| Signal | `README.md` (default) | `README.html` pays off |
-|---|---|---|
-| components | one tool, a few files | several stages or services |
-| flows | one linear pipeline | data crossing machines, stages with states |
-| status | one status for the whole | per-component status |
-| reader | the author, quickly | the author after months, or someone new |
+The user prefers a graphical `README.html`: diagrams, colours, status at a glance. A plain `README.md` alone only when there is nothing to draw (one script, one file).
 
 GitHub and VS Code render a `README.md` automatically but show a `README.html` as raw code, so **a `README.html` always comes with a 3-line `README.md` stub** that names the project and links to it (short variant at the bottom of [`../templates/README.template.md`](../templates/README.template.md)).
 
