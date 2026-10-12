@@ -32,10 +32,10 @@ li search_people keywords="ml manager ads" current_company=Meta location=London 
 
 | Feature | Chrome | MCP server (`li <tool>`) | Public pages | Other |
 |---|---|---|---|---|
-| Search jobs | | `search_jobs` (`keywords`, `location`, `date_posted`, `easy_apply`, `experience_level`, `work_type`) | 👍 `/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords=&location=&f_TPR=r604800` | Gmail alerts 👍 |
+| Search jobs | | 👍 `search_jobs` (`keywords`, `location`, `date_posted`, `easy_apply`, `experience_level`, `work_type`); give the country in `location` ("Zurich" alone gave Zurich, Ontario) | 👍 `/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords=&location=&f_TPR=r604800` | Gmail alerts 👍 |
 | Read a job post | | `get_job_details` (`job_id`), `get_job_apply_url` | 👍 `/jobs-guest/jobs/api/jobPosting/<id>` | |
-| Saved jobs | read, save | `get_saved_jobs` (read) | ❌ | |
-| Easy Apply | only through auto-apply (never run on LinkedIn yet) | ❌ | ❌ | |
+| Saved jobs | 👍 "Save" on `/jobs/view/<id>/` (it turns "Saved"; click again to unsave) | `get_saved_jobs` (read) | ❌ | |
+| Easy Apply | 👍 up to the last page: "Easy Apply" on `/jobs/view/<id>/` opens a 4-page form, filled from the profile (contact, one of the uploaded CVs, past answers). Claude's permission check blocks "Review"/Submit in a normal session: the user clicks Submit, or auto-apply's `apply` level. To leave: X → "Discard" ("Save" keeps a draft) | ❌ | ❌ | |
 | Search people | 👍 `/search/results/people/?keywords=` | `search_people` (`keywords`, `current_company`, `location`); past company: in `keywords` | ❌ | web search 👍 |
 | Read a profile | 👍 `/in/<x>/details/experience/` (also `education`, `skills`) | `get_person_profile` (`linkedin_username`, `sections`), `get_my_profile` | 👍 `/in/<x>/`, partial | |
 | Someone's posts | 👍 `/in/<x>/recent-activity/all/` | `search_posts` | 👍 `/posts/<x>` | |
@@ -44,8 +44,8 @@ li search_people keywords="ml manager ads" current_company=Meta location=London 
 | **Read the inbox** | 👍 see "Messages" below | ❌ `get_inbox` works but marks conversations read (👍 tested twice) | ❌ | |
 | **Read a conversation** | 👍 `/messaging/thread/<id>/` | ❌ `get_conversation`, `search_conversations`: same risk, not used | ❌ | |
 | **Mark as unread** | 👍 ⋯ at the top right of the open conversation → "Mark as unread" (the menu then shows "Mark as read") | ❌ | ❌ | |
-| **Answer a message** | type in "Write a message…", Send | `send_message` (`linkedin_username`, `message`, `confirm_send=true`): new message to a connection only | ❌ | |
-| Connection request | | `connect_with_person` (`linkedin_username`, `note`) | ❌ | |
+| **Answer a message** | 👍 on the conversation's link: click into "Write a message…" by coordinates (a click by `find` reference did not focus it), type, zoom to check the text, Send | `send_message` (`linkedin_username`, `message`, `confirm_send=true`): new message to a connection only | ❌ | |
+| Connection request | 👍 "Connect" on a card in `/mynetwork/grow/` or a profile: sent at once, no note asked, the button turns "Pending". `scroll_to` the card first (a click on an off-screen card did nothing) | `connect_with_person` (`linkedin_username`, `note`) | ❌ | |
 | Post, comment, react | | ❌ | ❌ | |
 | Edit my profile | 👍 skill `linkedin-profile` | ❌ | ❌ | |
 | Copy of my profile | 👍 skill `linkedin-profile` step 1 | `get_my_profile` | 👍 `/in/<me>/` | data export 👍 |
