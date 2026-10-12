@@ -1,8 +1,8 @@
 #!/bin/bash
-# Removes what bootstrap.sh links into the agents' homes: the instruction
-# symlinks (~/.claude/CLAUDE.md, ~/.codex/AGENTS.md) and one symlink per skill
-# in ~/.claude/skills and ~/.agents/skills - only links that point into this
-# clone. Dotfiles, the shell rc block, git config and the tools are left alone.
+# Removes what modules/agent_links.sh deploys: the links ~/.claude/CLAUDE.md,
+# ~/.codex/AGENTS.md and one per skill in ~/.claude/skills and ~/.agents/skills
+# (only links that point into ~/opt/bootstrap-home), then the read-only copies
+# they point to. Dotfiles, the shell rc block, git config and the tools are left alone.
 #
 # Usage: bash uninstall.sh
 set -uo pipefail
@@ -10,19 +10,28 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/utils.sh"
 
+OPT_DIR="$HOME/opt/bootstrap-home"
+
 _remove_link() {
-    local link="$1" src="$2"
-    if [ -L "$link" ] && [ "$(readlink "$link")" = "$src" ]; then
+    local link="$1" target="$2"
+    if [ -L "$link" ] && [ "$(readlink "$link")" = "$target" ]; then
         rm "$link"
         installed "removed $link"
     fi
 }
 
 step "agent links"
-_remove_link "$HOME/.claude/CLAUDE.md" "$SCRIPT_DIR/files/home_AGENTS.md"
-_remove_link "$HOME/.codex/AGENTS.md" "$SCRIPT_DIR/files/home_AGENTS.md"
-for src in "$SCRIPT_DIR"/skills/*/; do
+_remove_link "$HOME/.claude/CLAUDE.md" "$OPT_DIR/home_AGENTS.md"
+_remove_link "$HOME/.codex/AGENTS.md" "$OPT_DIR/home_AGENTS.md"
+for dst in "$OPT_DIR"/skills/*/; do
+    [ -d "$dst" ] || continue
     for home in "$HOME/.claude/skills" "$HOME/.agents/skills"; do
-        _remove_link "$home/$(basename "$src")" "${src%/}"
+        _remove_link "$home/$(basename "$dst")" "${dst%/}"
     done
+done
+for copy in "$OPT_DIR/home_AGENTS.md" "$OPT_DIR/skills"; do
+    if [ -e "$copy" ]; then
+        chmod -R u+w "$copy" && rm -r "$copy"
+        installed "removed $copy"
+    fi
 done

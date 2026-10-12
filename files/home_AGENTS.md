@@ -68,16 +68,16 @@ Keep the whole thing to a screenful. It is a map, not a report.
 # Folders
 
 - `~/dev/<repo>` — all source repos, flat; the folder name is the real GitHub repo name (`git remote -v`).
-- `~/opt/<repo>/` — only what a scheduler runs unattended, with its logs and state; the OS scheduler folders and `~/.local/bin/` hold only symlinks into it. Anything run by hand stays in `~/dev`.
-- Symlinks, never copies, outside a repo. Each repo's `install.sh` creates its links and its `uninstall.sh` removes them (only links pointing into that repo); never make or delete one by hand. Same rule on every machine:
+- `~/opt/<repo>/` — what is deployed: run by a scheduler, put on the PATH, or loaded by agents (skills, this file), with its logs and state. Written only by the repo's `install.sh`. Anything run by hand stays in `~/dev`.
+- Outside a repo, only symlinks into `~/opt`. Each repo's `install.sh` (bootstrap-home: `bootstrap.sh`) deploys into `~/opt/<repo>/` and creates the links; its `uninstall.sh` removes both. Never make or delete one by hand. Same rule on every machine:
 
   | Link | Points to |
   |---|---|
   | `~/.local/bin/<tool>`, OS scheduler units | `~/opt/<repo>/…` (the deployed copy) |
-  | `~/.claude/skills/<name>`, `~/.agents/skills/<name>` | `~/dev/<repo>/skills/<name>/` (the clone) |
-  | `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md` | `~/dev/bootstrap-home/files/home_AGENTS.md` (this file) |
+  | `~/.claude/skills/<name>`, `~/.agents/skills/<name>` | `~/opt/<repo>/skills/<name>/` (read-only copy of `~/dev/<repo>/skills/<name>/`) |
+  | `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md` | `~/opt/bootstrap-home/home_AGENTS.md` (read-only copy of this file) |
 
-  A skill belongs to the repo of the tool it serves; one that serves no project lives in `bootstrap-home`. Off the MacBook, `~/dev` clones are pull-only.
+  Skills and this file are read-only once deployed: edit the source in `~/dev/<repo>`, commit, then re-run that repo's `install.sh`. A skill belongs to the repo of the tool it serves; one that serves no project lives in `bootstrap-home`. Off the MacBook there is no `~/dev`: installs run from a temporary clone.
 - Never leave the shell's working directory changed after a spontaneous `cd` — change back before finishing, or ask first. The statusline's git-status segment reads the shell's live cwd, so a stray `cd` breaks it for the rest of the session, not just that command.
 
 # Development vs deployment
@@ -109,7 +109,7 @@ Reuse these instead of rebuilding them; read the named file before depending on 
 
 # Editing this file
 
-`~/.claude/CLAUDE.md` and `~/.codex/AGENTS.md` are symlinks to `~/dev/bootstrap-home/files/home_AGENTS.md`: one file, edited and committed there.
+`~/.claude/CLAUDE.md` and `~/.codex/AGENTS.md` link to a read-only copy. Edit `~/dev/bootstrap-home/files/home_AGENTS.md`, commit, then deploy it: `INSTALL=true bash ~/dev/bootstrap-home/bootstrap.sh agent_links`.
 
 # Token-conscious execution
 

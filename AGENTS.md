@@ -10,8 +10,8 @@ mean before editing anything:
 - Repository-development feedback belongs in this repository-root
   `AGENTS.md` (no `CLAUDE.md`: Claude reads `AGENTS.md` directly).
 - General machine-wide instructions that bootstrap-home should deploy to new
-  machines belong in `files/home_AGENTS.md`, linked as `~/.claude/CLAUDE.md` and
-  `~/.codex/AGENTS.md`.
+  machines belong in `files/home_AGENTS.md`, deployed read-only to
+  `~/opt/bootstrap-home/` and linked as `~/.claude/CLAUDE.md` and `~/.codex/AGENTS.md`.
 
 Do not assume an unqualified `AGENTS.md` or `CLAUDE.md` request targets the
 deployment payload merely because `files/home_AGENTS.md` exists. Infer the
