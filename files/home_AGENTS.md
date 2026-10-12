@@ -93,6 +93,17 @@ Code is written and edited on the MacBook only. The VM and cloud targets only ru
 
 Get "this machine's name" (`chan-lescut-macbook-pro`, `H-Frank-1`, `GCP`) only with the snippet in skill `machine-name` — never `hostname` or `socket.gethostname()`.
 
+## Chrome profiles (Claude in Chrome)
+
+Before the first browser action of a session, `select_browser` by deviceId (the names in the extension are not kept: both show "Browser 1/2"):
+
+| Chrome profile | deviceId | Use for |
+|---|---|---|
+| Claude - general | `331a94e7-f123-4e09-a755-cdc63980187f` | everything by default; also LinkedIn and job-applications (it is logged in to LinkedIn) |
+| Personal | `7ffa990a-3bd4-46be-bf9e-871ec9870f9a` | only pages that need the user's Google login (Google One, Gmail web…) |
+
+If a deviceId is missing from `list_connected_browsers`, ask the user; never pick another browser yourself.
+
 # Shared projects
 
 Reuse these instead of rebuilding them; read the named file before depending on one. Edit another project's repo only when the user asks for it; otherwise report the gap to them.
