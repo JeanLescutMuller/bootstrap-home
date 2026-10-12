@@ -77,6 +77,13 @@ _deploy_dotfile() {
     installed "$name"
 
     if [ "$name" = "tmux.conf" ]; then
+        # The cp above just dropped notify's AGENT-NOTIFY block (it is not in
+        # files/tmux.conf, see the note at its end): put it back now if notify
+        # is installed, instead of only when the tools module happens to run.
+        local notify_bin="$HOME/opt/agent-notify/app/notify"
+        if [ -x "$notify_bin" ]; then
+            "$notify_bin" init >/dev/null && installed "notify init (tmux hooks)" || fail "notify init (tmux hooks)"
+        fi
         tmux info &>/dev/null && tmux source-file "$target" 2>/dev/null && ok "tmux config reloaded"
     fi
 }
