@@ -11,7 +11,7 @@ The reader must not be able to tell an AI drafted it. That comes from **content*
 
 - Only facts the user gave or that are on record (their CV, the thread, their files). **Never invent** a memory, an emotion, an anecdote, a number, a shared acquaintance or a "lifelong passion".
 - Unsure whether something is true or whether the user would say it → ask, or leave it out.
-- Job applications: also follow `~/dev/auto-apply/docs/human-writing-guide.md` (truth rules, detectors, review steps).
+- Job applications: also follow `~/dev/job-applications/docs/human-writing-guide.md` (truth rules, detectors, review steps).
 
 ## 2. Sound like the user
 
@@ -59,4 +59,4 @@ Fix each one by rewriting the sentence around its point, not by swapping a word.
 2. Search the draft for the tells that survive most: contrasts, closers, triplets, dashes, stock words, UTF-8 emojis.
 3. Give the user the final text. Sending it is the channel's job (its own skill), with the user's OK.
 
-Sources: `~/dev/auto-apply/docs/human-writing-guide.md`; patterns adapted from blader/humanizer (MIT, https://github.com/blader/humanizer), itself based on Wikipedia's "Signs of AI writing".
+Sources: `~/dev/job-applications/docs/human-writing-guide.md`; patterns adapted from blader/humanizer (MIT, https://github.com/blader/humanizer), itself based on Wikipedia's "Signs of AI writing".
