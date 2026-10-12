@@ -41,7 +41,7 @@ for name in "${TOOLS[@]}"; do
 
     if [ "$name" = "agent-notify" ]; then
         # notify owns its own tmux-hooks injection via `notify init`
-        # (release_v4/notify, guarded by the "# ┌─ AGENT-NOTIFY BLOCK ─"
+        # (agent-notify's release/notify, guarded by the "# ┌─ AGENT-NOTIFY BLOCK ─"
         # marker) - this is deliberately not part of the tmux.conf dotfile.
         NOTIFY_BIN="$HOME/opt/agent-notify/app/notify"
         if command -v tmux >/dev/null 2>&1 && grep -qF "# ┌─ AGENT-NOTIFY BLOCK" "$HOME/.tmux.conf" 2>/dev/null; then

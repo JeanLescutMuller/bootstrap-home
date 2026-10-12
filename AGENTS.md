@@ -27,7 +27,7 @@ The shared Claude/Codex statusline renderer, its lazy cache library, and the
 Codex status-line-command binary patch all moved to the independent
 [`agent-statusline`](https://github.com/JeanLescutMuller/agent-statusline)
 project. `modules/tools.sh` clones and deploys it the same way it deploys
-`claude-session-manager` and `notify`; bootstrap-home itself no longer owns
+`agent-session-manager` and `notify`; bootstrap-home itself no longer owns
 any of that logic or touches `~/.codex/config.toml`.
 
 That project's own build-script convention still applies wherever it's

@@ -1,10 +1,10 @@
 #!/bin/bash
 # Ensures specific top-level ~/.claude/settings.json keys match
 # files/claude_settings.json, merged in via python3 (already a required
-# dependency of claude-session-manager's own install.sh) without touching
+# dependency of agent-session-manager's own install.sh) without touching
 # any other key in the file.
 #
-# Deliberately does NOT manage "hooks" (claude-session-manager's own job -
+# Deliberately does NOT manage "hooks" (agent-session-manager's own job -
 # its install.sh registers those) or "enabledPlugins"/"extraKnownMarketplaces"
 # (notify's own job - its install.sh registers those). Each tool that owns
 # a piece of this file manages it itself - this module only owns the keys

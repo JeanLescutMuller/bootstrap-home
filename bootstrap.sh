@@ -84,7 +84,7 @@ _deploy_dotfile() {
 # Own binaries: real file under ~/opt/bootstrap-home/bin/, symlinked from
 # ~/.local/bin/ (per files/home_AGENTS.md's rule that ~/.local/bin holds only
 # symlinks into ~/opt/<project>/, never real files - same pattern as
-# claude-session-manager's csm/status or notify's own binary). Shape
+# agent-session-manager's asm or notify's own binary). Shape
 # mirrors DOTFILES: source name in files/, bin name on PATH.
 OWN_BINS=(
     "get_host_color.sh:get_host_color"
@@ -129,7 +129,7 @@ _sha256() {
 # file) labeled $2 (e.g. "BOOTSTRAP-HOME"), containing $3 (desired
 # content). Removes and reconstructs the block every time it's called -
 # never touches anything outside it. Same format as notify's own tmux-hook
-# injection (release_v4/notify's deploy_managed_block) - keep both in sync
+# injection (agent-notify's release/notify, deploy_managed_block) - keep both in sync
 # if this changes. If the block was hand-edited since it was last written
 # (hash mismatch), leaves the file untouched, prints a diff, and fails
 # instead of overwriting the edit.
