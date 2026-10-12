@@ -38,7 +38,7 @@ anything recurring (a poller included) ───────────► a jo
 1. Read `~/dev/job-runner/DESIGN.md` §4 (the settings and helpers) and copy the closest entrypoint from `~/dev/job-runner/examples/` (one per real job, its requirements in its header) into the project as `src/entrypoint.sh` (or `src/<job>.sh` when the project has several jobs). The simplest is two lines: `. ~/opt/job-runner/lib.sh` then `jr_execute TIMEOUT_MIN CMD…`; add rules only for a real constraint (`jr_skip_if SUCCESS day "…"`, `jr_claim MIN` against overlap, `JR_SYNC_ENV=VM|GITHUB` + `jr_pull` for a job shared by several machines).
 2. The command returns real exit codes (0 only when the work is done); any other code is the project's own, mapped in the entrypoint (`jr_write_status WAIT|SKIP …`).
 3. `install.sh` copies it to `~/opt/<repo>/entrypoint.sh` and writes the triggers (on the Mac always a tick); each trigger runs `/bin/bash ~/opt/<repo>/entrypoint.sh`. A model: `~/dev/agent-session-manager/install.sh`.
-4. Test one check by hand with `JR_DRY_RUN=1 /bin/bash ~/opt/<repo>/entrypoint.sh` (decides for real, does not work), then read `~/opt/job-runner/status/<job>/<machine>.tsv` and the job's card on the dashboard. Its thresholds and look: an optional `~/dev/job-runner/dashboard/conf/<repo>[.<job>].conf` (DESIGN §11).
+4. Test one check by hand with `JR_DRY_RUN=1 /bin/bash ~/opt/<repo>/entrypoint.sh` (decides for real, does not work), then read `~/opt/job-runner/status/<job>/<machine>.tsv` and the job's card on the dashboard. Its thresholds and look (`RED_AFTER_MIN`, `TITLE`, `ORDER`…): an optional `<job>.conf` beside its entrypoint (`entrypoint.conf` beside `entrypoint.sh`), `KEY=value` lines over `~/dev/job-runner/dashboard/conf/_default.conf`; `install.sh` sends it to the dashboard with `bash ~/opt/job-runner/put-conf.sh <repo>[.<job>] <file>` (job-runner DESIGN §11).
 
 The job's name is the entrypoint's place: `~/opt/<repo>/entrypoint.sh` → `<repo>`, `~/opt/<repo>/<job>.sh` → `<repo>.<job>`. Do not edit job-runner from another project: report a gap to the user.
 
@@ -56,12 +56,12 @@ Same rules and names. A working model: the trigger part of `~/dev/agent-session-
 ## 4. Change or rename
 
 - A new trigger name: `install.sh` removes the old one on every machine (`rm_trigger OLD_NAME` from `install_snippet.sh`), then installs the new one.
-- A job's name changes (its folder or entrypoint renamed): once the old triggers are gone, mark the old name `DECOMMISSIONED=1` in `~/dev/job-runner/dashboard/conf/<old job>.conf` (then `~/dev/job-runner/deploy/deploy.sh vm`).
+- A job's name changes (its folder or entrypoint renamed): once the old triggers are gone, mark the old name decommissioned: `ssh H-Frank-1 'echo DECOMMISSIONED=1 >> ~/opt/job-runner/conf/<old job>.conf'`.
 
 ## 5. Decommission
 
 1. Remove the trigger on every machine it runs on, with the project's `uninstall.sh` (or `install.sh`): macOS `launchctl bootout` + remove the link and the real file; Linux `systemctl --user disable --now`, remove links and files, `daemon-reload`; GCP the Cloud Scheduler entry and the Cloud Run job.
-2. A job: `DECOMMISSIONED=1` in `~/dev/job-runner/dashboard/conf/<job>.conf`, deployed with `~/dev/job-runner/deploy/deploy.sh vm`: it folds to "Decommissioned" at the bottom of the dashboard.
+2. A job: `ssh H-Frank-1 'echo DECOMMISSIONED=1 >> ~/opt/job-runner/conf/<job>.conf'` (no repo, no deploy): it folds to "Decommissioned" at the bottom of the dashboard.
 3. Keep the data (`~/opt/<repo>/data`, `~/opt/job-runner/status/<job>`, `~/opt/job-runner/logs/<job>`) unless the user says to delete it.
 4. Remove the trigger from the project's docs.
 
