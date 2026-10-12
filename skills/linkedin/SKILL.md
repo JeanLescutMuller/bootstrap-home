@@ -52,7 +52,7 @@ li search_people keywords="ml manager ads" current_company=Meta location=London 
 | Edit my profile | 👍 skill `linkedin-profile` | ❌ | ❌ | |
 | Copy of my profile | 👍 skill `linkedin-profile` step 1 | 👍 `get_my_profile` | 👍 `/in/<me>/` | data export 👍 |
 
-Messages: Chrome only. Other reads: the MCP server first (through `li`), Chrome when it lacks the feature or fails. Chrome never took the focus in the measurements (navigate, page text, screenshot, click, close tab). Writes: either, after the user's OK.
+**Which method** (the user's choice, 2026-10-12): **Chrome first**, for reads and writes: it never took the user's focus in the measurements (navigate, page text, screenshot, click, close tab). Messages: Chrome only. The MCP server (through `li`) only when Chrome lacks the feature or fails, and tell the user before, since each call flashes a window and takes the focus for 0.2-0.4 s even with the guard. Public pages, Gmail and web search are fine whenever they cover the feature (no login, no focus change). Any write: after the user's OK.
 
 ## Messages (Chrome)
 
