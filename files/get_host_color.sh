@@ -21,7 +21,7 @@ set -euo pipefail
 
 HOST_PALETTE=(25 27 33 39 45 51 50 44 57 63 99 129 135 141)
 
-# This machine's name: "Machine name" in ~/AGENTS.md (copy it identically)
+# This machine's name: skill "machine-name" (copy it identically)
 m=${JR_MACHINE_NAME:-$(if [ "$(uname)" = Darwin ]; then scutil --get HostName; else cat /etc/hostname; fi 2>/dev/null)} || :
 m=${m%%.*}; [[ $m =~ ^[A-Za-z0-9-]+$ ]] || m='?'
 host="${1:-$m}"

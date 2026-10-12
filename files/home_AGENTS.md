@@ -119,6 +119,13 @@ The user has very few tokens. For anything long or repeated (a build, a full tes
 
 - Move fast, in parallel: never make the user wait hours or days on a check (a scheduled run, a second success). Assume it works, file the check as a dated task, and keep developing; act on the result when it comes.
 - When an agent works inside the repo of another project, it commits its work there before finishing: only its own files, never a push, never left uncommitted.
+- Every commit an agent makes ends with these trailers, after any `Co-Authored-By` line; the Author stays the user:
+
+  ```
+  Agent: claude-code (claude-opus-5-5)       # or codex (<model>), claude.ai, chatgpt
+  Machine: chan-lescut-macbook-pro           # skill machine-name; Web when not on one of the machines
+  Session: <$CLAUDE_CODE_SESSION_ID>         # Codex: $CODEX_THREAD_ID
+  ```
 - Delete named files one at a time, by literal path, as their own step after looking at them; never `rm` a glob or a variable path, never inside a long command chain.
 - Design: propose removals before additions; a new parameter names the step that owns it and the measurement that justifies it; measured values over hard-coded constants.
 - Time fields are `ts` (Unix epoch seconds) and `dt` (ISO 8601 UTC), first in every row, table or schema.

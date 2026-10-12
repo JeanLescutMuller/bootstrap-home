@@ -352,8 +352,8 @@ for src in "$SCRIPT_DIR"/skills/*/; do
     _deploy_skill_link "${src%/}"
 done
 
-# The machine's name is its hand-set HostName ("Machine name" in
-# files/home_AGENTS.md): without one, macOS takes it from the network and it
+# The machine's name is its hand-set HostName (skill
+# machine-name): without one, macOS takes it from the network and it
 # drifts. Check only - setting it needs sudo, which this script never runs.
 step "machine name"
 if [ "$(uname)" = Darwin ]; then
