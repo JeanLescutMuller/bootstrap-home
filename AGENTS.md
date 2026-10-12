@@ -8,8 +8,7 @@ When the user mentions `AGENTS.md` or `CLAUDE.md`, determine which scope they
 mean before editing anything:
 
 - Repository-development feedback belongs in this repository-root
-  `AGENTS.md`. `CLAUDE.md` at the repository root is a compatibility symlink to
-  this file.
+  `AGENTS.md` (no `CLAUDE.md`: Claude reads `AGENTS.md` directly).
 - General machine-wide instructions that bootstrap-home should deploy to new
   machines belong in `files/home_AGENTS.md`, which is installed as
   `~/AGENTS.md`.

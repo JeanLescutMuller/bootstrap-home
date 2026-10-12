@@ -1,4 +1,4 @@
-<!-- Loaded by EVERY session working in this folder or below: every word costs on every turn. Aim ≤ 400 words, never above ~600, not counting ## Vocabulary. Rules and pointers only; evidence goes in doc/. Never repeat a parent AGENTS.md. Then: ln -sfn AGENTS.md CLAUDE.md -->
+<!-- Loaded by EVERY session working in this folder or below: every word costs on every turn. Aim ≤ 400 words, never above ~600, not counting ## Vocabulary. Rules and pointers only; evidence goes in doc/. Never repeat a parent AGENTS.md. No CLAUDE.md: Claude and Codex both read this file. -->
 
 # <project-name>
 

@@ -24,7 +24,7 @@ flowchart LR
 
 ```
 <project-name>/
-├── AGENTS.md          rules for agents (CLAUDE.md → AGENTS.md)
+├── AGENTS.md          rules for agents (Claude and Codex)
 ├── doc/               companion files for the code
 └── src/               …
 ```

@@ -1,4 +1,4 @@
-# `AGENTS.md` and its `CLAUDE.md` symlink
+# `AGENTS.md`
 
 ## Every session loads it, so keep it small
 
@@ -45,13 +45,8 @@ Agents using the wrong word with the user is a recurring, costly failure, so the
 
 Template: [`../templates/AGENTS.template.md`](../templates/AGENTS.template.md).
 
-## `CLAUDE.md` is a symlink to it
+## No `CLAUDE.md`
 
-Codex reads `AGENTS.md`, Claude reads `CLAUDE.md`; the symlink makes both read the same file, so the rules cannot diverge. Every `AGENTS.md` gets one, at every level.
+Codex and Claude Code (v2.1.277 and later) both read `AGENTS.md` directly, at every level, so a project has **no `CLAUDE.md`, not even a symlink**. By default, one `CLAUDE.md` anywhere on the path makes Claude ignore every `AGENTS.md` (https://code.claude.com/docs/en/memory#agents-md); this machine's setting (Project instructions = `claude-md-and-agents-md`, set by bootstrap-home) softens that, but the rule stays: no `CLAUDE.md`.
 
-```bash
-ln -sfn AGENTS.md CLAUDE.md                # in the same folder, relative target
-git ls-files -s CLAUDE.md                  # must show mode 120000 (a symlink), not 100644
-```
-
-If a real `CLAUDE.md` already exists, merge its content into `AGENTS.md` first, then replace it with the link.
+If a real `CLAUDE.md` exists, merge its content into `AGENTS.md`, then `git rm CLAUDE.md`. The only `CLAUDE.md` on the machine is the global `~/.claude/CLAUDE.md` (→ `~/AGENTS.md`).

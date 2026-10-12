@@ -67,11 +67,13 @@ with open(settings_path, "w") as f:
 # the same file twice in every session. Skip the parent-folder copy.
 # autoMemoryEnabled false: durable facts go in an AGENTS.md or a skill, never in
 # Claude's private memory files.
+# pluginConfigs: Claude reads every AGENTS.md even if a CLAUDE.md sits on the
+# path (default: one CLAUDE.md hides them all); projects keep no CLAUDE.md.
 # skillOverrides: hides skills that only work elsewhere (Anthropic's
 # google-workspace needs claude.ai's Google connector, here our own google-workspace skill does it;
 # built-in-browser and computer-use need the desktop app; chrome-browser repeats
 # the built-in claude-in-chrome; docs needs the Claude Docs MCP, off here; docx/pptx/xlsx: no Microsoft
 # Office on this machine).
-for key in respondToBashCommands theme statusLine cleanupPeriodDays claudeMdExcludes autoMemoryEnabled skillOverrides; do
+for key in respondToBashCommands theme statusLine cleanupPeriodDays claudeMdExcludes autoMemoryEnabled skillOverrides pluginConfigs; do
     _check_or_set_json "$key"
 done

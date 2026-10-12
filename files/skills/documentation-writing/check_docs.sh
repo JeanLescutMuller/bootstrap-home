@@ -62,21 +62,9 @@ elif ! grep -q '^## Vocabulary' "$ROOT/AGENTS.md"; then
     warn "$ROOT/AGENTS.md" "no '## Vocabulary' table — the project's words belong here"
 fi
 
-# --- AGENTS.md: symlink, budgets, README beside it ---
+# --- AGENTS.md: budgets, README beside it ---
 while IFS= read -r agents; do
     dir="$(dirname "$agents")"
-    claude="$dir/CLAUDE.md"
-    if [ ! -e "$claude" ] && [ ! -L "$claude" ]; then
-        fail "$claude" "missing — run: ln -sfn AGENTS.md CLAUDE.md"
-    elif [ ! -L "$claude" ]; then
-        fail "$claude" "is a real file, must be a symlink to AGENTS.md"
-    elif [ "$(readlink "$claude")" != "AGENTS.md" ]; then
-        fail "$claude" "points to '$(readlink "$claude")', must point to AGENTS.md"
-    else
-        mode="$(git -C "$dir" ls-files -s CLAUDE.md 2>/dev/null | awk '{print $1}')"
-        [ -n "$mode" ] && [ "$mode" != "120000" ] && fail "$claude" "git mode $mode, must be 120000 (a symlink)"
-    fi
-
     words="$(budget_words "$agents")"
     if [ "$words" -gt "$AGENTS_FAIL_WORDS" ]; then
         fail "$agents" "$words words (> $AGENTS_FAIL_WORDS): move explanations to doc/"
@@ -108,10 +96,13 @@ while IFS= read -r agents; do
     fi
 done < <(find_named 'AGENTS\.md')
 
-# --- CLAUDE.md with no AGENTS.md beside it ---
+# --- no CLAUDE.md: Claude and Codex both read AGENTS.md ---
 while IFS= read -r claude; do
-    [ -e "$(dirname "$claude")/AGENTS.md" ] ||
-        warn "$claude" "no AGENTS.md beside it: move its content into AGENTS.md, then symlink"
+    if [ -L "$claude" ]; then
+        warn "$claude" "remove it (git rm): Claude reads AGENTS.md directly"
+    else
+        fail "$claude" "a real CLAUDE.md: merge it into AGENTS.md, then git rm it"
+    fi
 done < <(find_named 'CLAUDE\.md')
 
 # --- doc/ folders never hold a README ---

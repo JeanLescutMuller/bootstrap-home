@@ -22,5 +22,12 @@
     "anthropic-skills:docx": "off",
     "anthropic-skills:pptx": "off",
     "anthropic-skills:xlsx": "off"
+  },
+  "pluginConfigs": {
+    "cc-plugin-agents-md@builtin": {
+      "options": {
+        "instructionFiles": "claude-md-and-agents-md"
+      }
+    }
   }
 }
