@@ -5,7 +5,7 @@ description: How to write anything that goes out in the user's name to other peo
 
 # Writing for other people, in the user's name
 
-The reader must not be able to tell an AI drafted it. That comes from **content** (real facts, one clear point, the user's tone), not from tricks: no deliberate typos, no rare synonyms, no hidden characters.
+The reader must not be able to tell an AI drafted it. That comes from **content** (real facts, one clear point, the user's tone), not from tricks: no rare synonyms, no hidden characters. The one exception is the occasional typo in informal channels (§2).
 
 ## 1. Facts first
 
@@ -25,6 +25,16 @@ The reader must not be able to tell an AI drafted it. That comes from **content*
 | recruiter, employer, administration | formal, short, direct; formal greeting and closing |
 | colleague, professional contact | friendly-professional, first name, no ceremony |
 | friends, family | the user's own style from past messages; never formal |
+
+**Typos in informal channels** (the user's rule): WhatsApp, Signal, SMS and chat messages, written in a casual tone, get the occasional typo, the way a person typing fast on a phone writes.
+
+| | Rule |
+|---|---|
+| Where | informal channels and a casual tone only. Never in an email to a recruiter, employer or administration, a cover letter, a CV, a LinkedIn profile, a form or a post |
+| How many | sparse: at most one per message, and not in every message |
+| Kind | one missing letter in a common word ("realy", "tomorow", "thnks"), nothing more elaborate |
+| Never in | names, numbers, dates, times, addresses, links, or the word the message hinges on |
+| When proposing | point it out in one line ("deliberate typo: realy"), so the user can keep or fix it |
 
 ## 3. Remove the AI tells
 
