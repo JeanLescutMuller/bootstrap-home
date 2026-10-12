@@ -10,7 +10,7 @@ description: Any LinkedIn lookup or action - jobs, people, profiles, companies, 
 | Method | How | Limits |
 |---|---|---|
 | **Chrome** | skill `claude-in-chrome`, the user's Chrome logged in to LinkedIn: deviceId `331a94e7-f123-4e09-a755-cdc63980187f` (the "Job Search" profile, shared with auto-apply). Own tab, closed at the end. | Chrome must be running. Pages load slowly: wait or zoom before `get_page_text` (it fails on a page still loading) and before clicking a menu (a click on a page still loading is ignored: check it opened, retry). Typing can drop letters: zoom and read before Send or Save. |
-| **MCP server** | stickerdaniel/linkedin-mcp-server: a headless browser with the login copied from Chrome (`~/.linkedin-mcp/profile/`), called from the shell with `li` below. Not registered as an MCP: its tool names would load in every session. | 11-23 s per call, one call at a time. Breaks when LinkedIn changes its pages. **Its message tools mark conversations read** (below). |
+| **MCP server** | stickerdaniel/linkedin-mcp-server: a headless browser with the login copied from Chrome (`~/.linkedin-mcp/profile/`), called from the shell with `li` below. Not registered as an MCP: its tool names would load in every session. | 10-30 s per call, one call at a time. **Each call pops a Chromium window on the Mac that takes focus away from the user's terminal (tmux)**: tell the user before a series of calls, and keep the series short. Breaks when LinkedIn changes its pages. **Its message tools mark conversations read** (below). |
 | **Public pages** | `curl` / WebFetch on pages that need no login (examples in the table below) | No people search, no messages, profiles only partly shown. Blocked if called too often: pause ~1.5 s between calls. |
 | **Web search** | `site:linkedin.com/in "<company>" "<role>"` | Only what search engines indexed. |
 | **Gmail** | skill `google-workspace`, `from:jobalerts-noreply@linkedin.com` | Only what LinkedIn emails (job alerts tested; message notifications not). |
@@ -33,14 +33,14 @@ li search_people keywords="ml manager ads" current_company=Meta location=London 
 | Feature | Chrome | MCP server (`li <tool>`) | Public pages | Other |
 |---|---|---|---|---|
 | Search jobs | | 👍 `search_jobs` (`keywords`, `location`, `date_posted`, `easy_apply`, `experience_level`, `work_type`); give the country in `location` ("Zurich" alone gave Zurich, Ontario) | 👍 `/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords=&location=&f_TPR=r604800` | Gmail alerts 👍 |
-| Read a job post | | `get_job_details` (`job_id`), `get_job_apply_url` | 👍 `/jobs-guest/jobs/api/jobPosting/<id>` | |
-| Saved jobs | 👍 "Save" on `/jobs/view/<id>/` (it turns "Saved"; click again to unsave) | `get_saved_jobs` (read) | ❌ | |
+| Read a job post | | 👍 `get_job_details` (`'job_id="<id>"'`: ids as quoted strings, the shell tool turns bare digits into numbers), 👍 `get_job_apply_url` (`{"apply":{"type":"applied"}}` when the user already applied) | 👍 `/jobs-guest/jobs/api/jobPosting/<id>` | |
+| Saved jobs | 👍 "Save" on `/jobs/view/<id>/` (it turns "Saved"; click again to unsave) | 👍 `get_saved_jobs` (the Job tracker: Saved, In Progress, Applied counts and the saved jobs) | ❌ | |
 | Easy Apply | 👍 up to the last page: "Easy Apply" on `/jobs/view/<id>/` opens a 4-page form, filled from the profile (contact, one of the uploaded CVs, past answers). Claude's permission check blocks "Review"/Submit in a normal session: the user clicks Submit, or auto-apply's `apply` level. To leave: X → "Discard" ("Save" keeps a draft) | ❌ | ❌ | |
 | Search people | 👍 `/search/results/people/?keywords=` | 👍 `search_people` (`keywords`, `location`, `current_company`); `current_company` is the numeric company id as a quoted string (`'current_company="10667"'` = Meta; the id: `get_company_profile` → `references.about[]` with `kind` = `company_urn`); a company name is refused; past company: in `keywords`. LinkedIn shows a Premium "unlimited search" banner: free accounts have a monthly people-search limit | ❌ | web search 👍 |
 | Read a profile | 👍 `/in/<x>/details/experience/` (also `education`, `skills`) | 👍 `get_person_profile` (`linkedin_username`, `sections`), 👍 `get_my_profile`; `get_sidebar_profiles` came back empty | 👍 `/in/<x>/`, partial | |
-| Someone's posts | 👍 `/in/<x>/recent-activity/all/` | `search_posts` | 👍 `/posts/<x>` | |
+| Someone's posts | 👍 `/in/<x>/recent-activity/all/` | 👍 `search_posts` (`keywords`, `date_posted`) | 👍 `/posts/<x>` | |
 | Company, its employees | `/company/<x>/people/` | 👍 `get_company_profile` (`company_name` = the `/company/<x>/` slug), 👍 `get_company_employees` (`keywords`: names, title, degree), 👍 `get_company_posts`, 👍 `search_companies` | 👍 `/company/<x>`: headquarters | |
-| Feed | 👍 `/feed/` | `get_feed` | ❌ | |
+| Feed | 👍 `/feed/` | 👍 `get_feed` (`num_posts`) | ❌ | |
 | **Read the inbox** | 👍 see "Messages" below | ❌ `get_inbox` works but marks conversations read (👍 tested twice) | ❌ | |
 | **Read a conversation** | 👍 `/messaging/thread/<id>/` | ❌ `get_conversation`, `search_conversations`: same risk, not used | ❌ | |
 | **Mark as unread** | 👍 ⋯ at the top right of the open conversation → "Mark as unread" (the menu then shows "Mark as read") | ❌ | ❌ | |
@@ -50,7 +50,7 @@ li search_people keywords="ml manager ads" current_company=Meta location=London 
 | Edit my profile | 👍 skill `linkedin-profile` | ❌ | ❌ | |
 | Copy of my profile | 👍 skill `linkedin-profile` step 1 | 👍 `get_my_profile` | 👍 `/in/<me>/` | data export 👍 |
 
-Messages: Chrome only. Other reads: the MCP server first (it does not take over the user's Chrome window), Chrome when it lacks the feature or fails. Writes: either, after the user's OK.
+Messages: Chrome only. Other reads: both methods disturb the user's screen (Chrome opens a tab, the MCP server pops a window per call): pick the one that needs fewer calls. Writes: either, after the user's OK.
 
 ## Messages (Chrome)
 
