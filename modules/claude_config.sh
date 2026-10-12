@@ -70,7 +70,8 @@ with open(settings_path, "w") as f:
 # google-workspace needs claude.ai's Google connector, here our own google-workspace skill does it;
 # built-in-browser and computer-use need the desktop app; chrome-browser repeats
 # the built-in claude-in-chrome; docs needs the Claude Docs MCP, off here; docx/pptx/xlsx: no Microsoft
-# Office on this machine).
+# Office on this machine; whatsapp-cli's own skill sends by bringing WhatsApp to the
+# front, our whatsapp skill replaces it).
 for key in respondToBashCommands theme statusLine cleanupPeriodDays autoMemoryEnabled skillOverrides pluginConfigs; do
     _check_or_set_json "$key"
 done

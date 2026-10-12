@@ -17,7 +17,8 @@
     "anthropic-skills:docs": "off",
     "anthropic-skills:docx": "off",
     "anthropic-skills:pptx": "off",
-    "anthropic-skills:xlsx": "off"
+    "anthropic-skills:xlsx": "off",
+    "whatsapp-cli:whatsapp": "off"
   },
   "pluginConfigs": {
     "cc-plugin-agents-md@builtin": {
