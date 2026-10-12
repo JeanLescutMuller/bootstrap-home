@@ -108,6 +108,7 @@ The user has very few tokens. For anything long or repeated (a build, a full tes
 
 # Working rules
 
+- Move fast, in parallel: never make the user wait hours or days on a check (a scheduled run, a second success). Assume it works, file the check as a dated task, and keep developing; act on the result when it comes.
 - Delete named files one at a time, by literal path, as their own step after looking at them; never `rm` a glob or a variable path, never inside a long command chain.
 - Design: propose removals before additions; a new parameter names the step that owns it and the measurement that justifies it; measured values over hard-coded constants.
 - Time fields are `ts` (Unix epoch seconds) and `dt` (ISO 8601 UTC), first in every row, table or schema.
