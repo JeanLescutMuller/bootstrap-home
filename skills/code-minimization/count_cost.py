@@ -86,7 +86,8 @@ def py_tokens(text):
         prefix = re.match(r'[A-Za-z]*', t.string).group().lower()
         body = t.string[len(prefix):].strip('"\'')
         text, l_expr = fstring_parts(body) if 'f' in prefix else (body, [])
-        count += (html_tokens(text) if re.search(r'<[A-Za-z!/]', text) else 1) + sum(n_words(x) for x in l_expr)
+        # each {…} is Python: a quoted message in it counts 1 too (in parentheses, so a lone string is not taken for a docstring)
+        count += (html_tokens(text) if re.search(r'<[A-Za-z!/]', text) else 1) + sum(py_tokens(f'({x})') - 2 for x in l_expr)
     return count
 
 def fstring_parts(body):
