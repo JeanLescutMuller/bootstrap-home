@@ -8,7 +8,8 @@ A token is a word or one symbol of code (\\w+, or any other non-space character)
 Free (never cut them to save tokens): comments, docstrings, blank lines, and the text of a string (a message, a log line,
 a path): a string counts 1, plus the code inside it ($x, ${…}, $(…), `…` in shell; {…} in f-strings; ${…} in JS).
 A string that is itself code counts as code: in shell, one read by awk/sed/jq/perl/sh/bash/ssh/python on its line, or
-one holding a newline, `;`, `|` or `$(`; a heredoc read by one of those; in HTML, an on…="…" handler.
+one holding a newline, `;`, `|` or `$(`; a heredoc read by one of those; in HTML, an on…="…" handler;
+in Python, a string holding markup (a page template): counted as HTML, its tags, CSS and JS.
 Settings files (any other extension: .conf, .env, .json…) count 1 per line that is not blank or a comment.
 Usage: count_cost.py [-v] [--weight W] --shared FILE… [--client FILE…]   (-v: one row per file)"""
 import argparse, io, pathlib, re, tokenize
@@ -79,11 +80,26 @@ def py_tokens(text):
     for k, t in enumerate(l_tok):
         if t.type in l_struct: continue
         if t.type != tokenize.STRING: count += n_words(t.string); continue
-        # A string alone on its line is a docstring: free. An f-string: 1, plus the code in its {…}
+        # A string alone on its line is a docstring: free. An f-string: 1, plus the code in its {…}.
+        # A string holding markup (a tag) is code: counted as HTML, each {…} as a placeholder text, plus its code
         if (k == 0 or l_tok[k - 1].type in l_struct) and l_tok[k + 1].type in l_struct: continue
         prefix = re.match(r'[A-Za-z]*', t.string).group().lower()
-        count += 1 + (sum(n_words(e) for e in re.findall(r'(?<!\{)\{([^{}]*)\}', t.string)) if 'f' in prefix else 0)
+        body = t.string[len(prefix):].strip('"\'')
+        text, l_expr = fstring_parts(body) if 'f' in prefix else (body, [])
+        count += (html_tokens(text) if re.search(r'<[A-Za-z!/]', text) else 1) + sum(n_words(x) for x in l_expr)
     return count
+
+def fstring_parts(body):
+    # An f-string's body → (its text, each {…} replaced by a word and {{ }} by { }, [the code of each {…}])
+    l_text, l_expr, i, n = [], [], 0, len(body)
+    while i < n:
+        if body.startswith(('{{', '}}'), i): l_text.append(body[i]); i += 2
+        elif body[i] == '{':
+            j, depth = i + 1, 1
+            while j < n and depth: depth += {'{': 1, '}': -1}.get(body[j], 0); j += 1
+            l_expr.append(body[i + 1:j - 1]); l_text.append('X'); i = j
+        else: l_text.append(body[i]); i += 1
+    return ''.join(l_text), l_expr
 
 def js_tokens(text):
     # JavaScript or CSS: /* */ and // comments 0, a string 1 plus the code of its ${…}

@@ -46,7 +46,7 @@ These rules go in the brief **before** any agent starts (on 2026-10-10 the first
 |---|---|
 | each word and each symbol of code: `2>/dev/null` = 5 tokens, with or without spaces | comments, docstrings, blank lines |
 | the code inside a string: `$x`, `${…}`, `$(…)`, an f-string's `{…}`, a JS `${…}` | a string's text (a message, a path): the whole string counts 1 |
-| a string that is code: read by awk, sed, jq, perl, sh, bash, ssh or python; holding a newline, `;`, `\|` or `$(`; an HTML `on…="…"` | the length of a name: `$JR_SYNC_ENV` costs the same as `$e` |
+| a string that is code: read by awk, sed, jq, perl, sh, bash, ssh or python; holding a newline, `;`, `\|` or `$(`; an HTML `on…="…"`; markup in a Python string (a page template: its tags, CSS and JS) | the length of a name: `$JR_SYNC_ENV` costs the same as `$e` |
 | a settings file: 1 per line | |
 
 ```bash
