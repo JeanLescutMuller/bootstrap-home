@@ -19,7 +19,7 @@ scope from the request, and ask when it remains ambiguous.
 
 ## Deferred work
 
-See `TODO.md` for deliberately postponed project improvements.
+Postponed improvements are Todoist tasks with `Repo: bootstrap-home` (skill `task-management`); [`viewer.html`](viewer.html) shows them.
 
 ## Statusline and Codex patch builds
 
