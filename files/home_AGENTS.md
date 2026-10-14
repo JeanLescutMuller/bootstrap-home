@@ -104,6 +104,8 @@ Before the first browser action of a session, `select_browser` by deviceId (the 
 
 If a deviceId is missing from `list_connected_browsers`, ask the user; never pick another browser yourself.
 
+Closing the job = closing the tabs: when your browser work is finished, close every tab of your tab group (`tabs_close_mcp`), even with an error or nothing found. Keep a tab open only while the user's help or input is needed in it, and say which tab. Paused or on hold is not finished: those tabs stay open.
+
 # Shared projects
 
 Reuse these instead of rebuilding them; read the named file before depending on one. Edit another project's repo only when the user asks for it; otherwise report the gap to them.
