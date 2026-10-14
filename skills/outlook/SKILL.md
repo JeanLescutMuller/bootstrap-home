@@ -16,12 +16,15 @@ Personal Microsoft accounts only. Claude's official Microsoft 365 connector refu
 
 Every tool takes `account=<email>`; without it, the default address is used. Always pass it.
 
+Filters (inbox rules) set up on 2026-10-14 with the user's OK, after a top-senders analysis: legend123@msn.com "F1 Shops" … "F6 Bills" (→ Deleted Items, folders Commandes and Factures); enrices@hotmail.fr "1 Shopping newsletters" … "10 Steam sales" (→ Deleted Items, Hebergement, Amazon, Paypal, CentraleSupelec). The emails they match that were already in the Inbox were moved the same day. Check `list-mail-rules` before adding a rule: extend an existing one rather than duplicating it.
+
 ## Methods
 
 | Method | How | Use for |
 |---|---|---|
 | **MCP tools** | `mcp__outlook__*` in Claude Code: server `outlook` (user scope, `~/.claude.json`), `npx -y @softeria/ms-365-mcp-server@0.157.2 --preset mail`, 51 tools, writes on | small reads and every write in a normal session |
 | **`ol.sh`** | `~/.claude/skills/outlook/scripts/ol.sh [--write] <tool> key=value … account=<email>`: the same server through the MCP inspector CLI, **read-only unless `--write`** | subagents, Codex, bulk reads (output to a file, read only aggregates), tests |
+| **`ol_bulk.mjs`** | `node ~/.claude/skills/outlook/scripts/ol_bulk.mjs [--write] list <account> <folder> <out.ndjson>` (a whole folder, ~1,000 emails per second) or `… run <calls.ndjson> <results.ndjson>` (one tool call per line, ~20 per second, resumable): ONE connection to the same server | anything over ~20 calls: a full folder copy, moving thousands of emails |
 | **Chrome** | outlook.live.com in the "Claude - general" profile (skill `claude-in-chrome`) | what Graph cannot do: the Blocked / Safe senders lists, junk-filter settings |
 
 ```bash
@@ -52,15 +55,18 @@ $OL --verify-login             # also --list-accounts, --list-permissions
 | Inbox rules (filters) | `list-mail-rules`, `create-mail-rule`, `delete-mail-rule` (`mailFolderId=inbox`) | 👍 |
 | Drafts | `create-draft-email`, then `delete-mail-message` | 👍 |
 | Send, reply, forward | `send-mail`, `reply-mail-message`, `forward-mail-message`, `send-draft-message` | |
-| Move, copy, mark read | `move-mail-message`, `copy-mail-message`, `update-mail-message` | |
-| Folders, categories, settings | `create-mail-folder`, `delete-mail-folder`, `create-outlook-category`, `update-mailbox-settings` | |
+| Move to Deleted Items or a folder | `move-mail-message` (`body='{"DestinationId":"<folder id>"}'`) | 👍 |
+| Copy, mark read | `copy-mail-message`, `update-mail-message` | |
+| Create a folder | `create-mail-folder` (`body='{"displayName":"…"}'`) | 👍 |
+| Delete a folder, categories, settings | `delete-mail-folder`, `create-outlook-category`, `update-mailbox-settings` | |
 | Block a sender | none: `markAsJunk` is not in this version; use a rule, or Chrome | ❌ |
 
 ## Limits found
 
 | Limit | Do |
 |---|---|
-| `fetchAllPages=true` stops at **10,989 emails** per call | page with `top=999 skip=<n>` and a fixed `orderby=receivedDateTime desc`; check the total against the folder's `totalItemCount` |
+| `fetchAllPages=true` stops at **10,989 emails** per call | use `ol_bulk.mjs list` (pages with `top=999 skip=<n>`, fixed order); check the total against the folder's `totalItemCount` |
+| `ol.sh` starts the server for each call (3-5 s) | over ~20 calls, `ol_bulk.mjs run`: 18,665 moves took ~15 min (2026-10-14) |
 | Email body `contentType` must be lowercase `text` or `html` | `"Text"` is refused |
 | Build JSON arguments with `JSON.stringify` (node), not by hand in the shell | escaped quotes reach the server as a string, and it refuses the call |
 | Rule condition `senderContains` may also match the sender's display name | counts made on the address alone can be slightly low |

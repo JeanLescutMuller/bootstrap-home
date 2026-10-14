@@ -39,5 +39,5 @@ gws gmail users messages list --params '{"userId": "me", "q": "from:x newer_than
 ## Setup on this Mac (gotchas)
 
 - `gws` = brew `googleworkspace-cli`. OAuth client in GCP project `contacts-cleanup-510610`, still in **Testing mode → re-login every 7 days**. `~/.config/gws/client_secret.json` is a symlink to `~/.config/contacts-cleanup/client_secret.json`.
-- Log in with explicit scopes (contacts, contacts.other.readonly, gmail.modify, calendar, drive, documents, spreadsheets, presentations, tasks); never add the Keep scope (personal accounts get `invalid_scope` and the whole login fails).
+- Log in with explicit scopes (contacts, contacts.other.readonly, gmail.modify, gmail.settings.basic (Gmail filters: gmail.modify alone gets 403 "insufficient authentication scopes"), calendar, drive, documents, spreadsheets, presentations, tasks); never add the Keep scope (personal accounts get `invalid_scope` and the whole login fails).
 - "insufficient authentication scopes" right after a re-login = a stale `~/.config/gws/token_cache.json`: remove it.
