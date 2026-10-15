@@ -32,7 +32,7 @@ INSTALL=true bash bootstrap.sh gitconfig   # dotfiles (always checked) + one mod
 - Uses the exact same box format as `notify`'s tmux-hook injection (`deploy_managed_block` in `notify`'s own script) — kept in sync deliberately, so every project that injects a block into a file it doesn't fully own looks and behaves identically.
 
 **Modules** (`modules/`, real logic only):
-- `dev_layout.sh` — ensures `~/dev`, `~/opt`, `~/.local/bin` exist
+- `dev_layout.sh` — ensures `~/dev`, `~/opt`, `~/.local/bin` exist; on the Mac, links `~/gdrive` → My Drive as mounted by the Google Drive app (`brew install --cask google-drive`, stream mode, installed by hand: it needs sudo)
 - `agent_links.sh` — the agent links above, and the migrations from earlier layouts (`~/AGENTS.md`, `~/dev/AGENTS.md`, renamed skills)
 - `gitconfig.sh` — user identity, `pull.rebase=false`, and the right credential helper for this OS (`osxkeychain` on macOS, `store` on Linux)
 - `claude_config.sh` — merges `respondToBashCommands`/`theme`/`statusLine`/`cleanupPeriodDays`/`autoMemoryEnabled`/`skillOverrides`/`pluginConfigs` (Claude reads every `AGENTS.md`, projects need no `CLAUDE.md`; Anthropic's `google-workspace` hidden here, `gws` covers it; the `whatsapp-cli` plugin's own skill hidden, skill `whatsapp` replaces it; memory off: facts go in AGENTS.md or a skill) into `~/.claude/settings.json`, and removes the retired `claudeMdExcludes` via `python3` (already a required dependency of `agent-session-manager`'s own installer), touching only those keys. Deliberately does **not** manage `hooks` (`agent-session-manager`'s own job) or `enabledPlugins`/`extraKnownMarketplaces` (`notify`'s own job) — each tool that owns a piece of this file manages it itself.
