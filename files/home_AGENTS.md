@@ -95,12 +95,13 @@ Get "this machine's name" (`chan-lescut-macbook-pro`, `H-Frank-1`, `GCP`) only w
 
 ## Chrome profiles (Claude in Chrome)
 
-Before the first browser action of a session, `select_browser` by deviceId (the names in the extension are not kept: both show "Browser 1/2"):
+Before the first browser action of a session, `select_browser` by deviceId (the names in the extension are not kept: they show "Browser 1/2/3"):
 
 | Chrome profile | deviceId | Use for |
 |---|---|---|
 | Claude - general | `331a94e7-f123-4e09-a755-cdc63980187f` | everything by default; also LinkedIn and job-applications (it is logged in to LinkedIn) |
 | Personal | `7ffa990a-3bd4-46be-bf9e-871ec9870f9a` | only pages that need the user's Google login (Google One, Gmail web…) |
+| Claude - Facebook | `db5922d3-1713-4df0-a025-1ac608fac5f1` | only Facebook Marketplace for `~/dev/marketplace-seller` (logged in to the user's secondary Facebook account); never anything else, and nothing else ever uses Facebook |
 
 If a deviceId is missing from `list_connected_browsers`, ask the user; never pick another browser yourself.
 
