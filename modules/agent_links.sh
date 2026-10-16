@@ -1,9 +1,9 @@
 #!/bin/bash
-# Agent instructions and skills, deployed like everything else: a read-only copy
+# Skills, deployed like everything else: a read-only copy
 # under ~/opt/bootstrap-home/, linked from where the agents look. An edit through
 # a link fails (read-only): edit the source in ~/dev/bootstrap-home, then
 # re-run `INSTALL=true bash bootstrap.sh agent_links`. uninstall.sh undoes it.
-#   files/home_AGENTS.md -> ~/opt/bootstrap-home/home_AGENTS.md <- ~/.claude/CLAUDE.md, ~/.codex/AGENTS.md
+# The machine-wide rules (~/.claude/CLAUDE.md, ~/.codex/AGENTS.md) are my-context's since 2026-10-16.
 #   skills/<name>/       -> ~/opt/bootstrap-home/skills/<name>/ <- ~/.claude/skills/<name>, ~/.agents/skills/<name>
 step "agent links"
 
@@ -55,9 +55,19 @@ _deploy_link() {
     installed "$link -> $target"
 }
 
-_deploy_readonly "$SCRIPT_DIR/files/home_AGENTS.md" "$OPT_DIR/home_AGENTS.md"
-_deploy_link "$OPT_DIR/home_AGENTS.md" "$HOME/.claude/CLAUDE.md"
-_deploy_link "$OPT_DIR/home_AGENTS.md" "$HOME/.codex/AGENTS.md"
+# ~/opt/bootstrap-home/home_AGENTS.md was the deployed machine-wide rules file,
+# moved to my-context on 2026-10-16. Removed once no link points to it.
+_old="$OPT_DIR/home_AGENTS.md"
+if [ -e "$_old" ]; then
+    if [ "$(readlink "$HOME/.claude/CLAUDE.md")" = "$_old" ] || [ "$(readlink "$HOME/.codex/AGENTS.md")" = "$_old" ]; then
+        warn "$_old still linked - run my-context's install.sh first (it relinks ~/.claude/CLAUDE.md, ~/.codex/AGENTS.md)"
+    elif [ "$INSTALL" = "false" ]; then
+        skip "remove old copy $_old"
+    else
+        chmod u+w "$_old" && rm "$_old"
+        installed "removed old copy $_old"
+    fi
+fi
 
 # A skill gone from skills/ (moved or renamed): its links and copy go too.
 for dst in "$OPT_SKILLS"/*/; do
@@ -84,12 +94,12 @@ done
 
 # --- Migrations from earlier layouts ---
 
-# ~/AGENTS.md was this project's deployed copy of files/home_AGENTS.md, replaced
+# ~/AGENTS.md was this project's deployed copy of the machine-wide rules (now my-context/init/AGENTS_LOCAL.md), replaced
 # by the links above. Removed only while it still matches.
 _copy="$HOME/AGENTS.md"
 if [ -f "$_copy" ] && [ ! -L "$_copy" ]; then
-    if ! diff -q "$_copy" "$SCRIPT_DIR/files/home_AGENTS.md" >/dev/null 2>&1; then
-        warn "$_copy differs from files/home_AGENTS.md - preserving it (merge it there, then delete it)"
+    if ! diff -q "$_copy" "$HOME/opt/my-context/init/AGENTS_LOCAL.md" >/dev/null 2>&1; then
+        warn "$_copy differs from my-context/init/AGENTS_LOCAL.md - preserving it (merge it there, then delete it)"
     elif [ "$INSTALL" = "false" ]; then
         skip "remove old copy $_copy"
     else

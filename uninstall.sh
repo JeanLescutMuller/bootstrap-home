@@ -1,6 +1,6 @@
 #!/bin/bash
-# Removes what modules/agent_links.sh deploys: the links ~/.claude/CLAUDE.md,
-# ~/.codex/AGENTS.md and one per skill in ~/.claude/skills and ~/.agents/skills
+# Removes what modules/agent_links.sh deploys: the skill links
+# in ~/.claude/skills and ~/.agents/skills
 # (only links that point into ~/opt/bootstrap-home), then the read-only copies
 # they point to. Dotfiles, the shell rc block, git config and the tools are left alone.
 #
@@ -21,8 +21,6 @@ _remove_link() {
 }
 
 step "agent links"
-_remove_link "$HOME/.claude/CLAUDE.md" "$OPT_DIR/home_AGENTS.md"
-_remove_link "$HOME/.codex/AGENTS.md" "$OPT_DIR/home_AGENTS.md"
 for dst in "$OPT_DIR"/skills/*/; do
     [ -d "$dst" ] || continue
     for home in "$HOME/.claude/skills" "$HOME/.agents/skills"; do

@@ -9,13 +9,12 @@ mean before editing anything:
 
 - Repository-development feedback belongs in this repository-root
   `AGENTS.md` (no `CLAUDE.md`: Claude reads `AGENTS.md` directly).
-- General machine-wide instructions that bootstrap-home should deploy to new
-  machines belong in `files/home_AGENTS.md`, deployed read-only to
-  `~/opt/bootstrap-home/` and linked as `~/.claude/CLAUDE.md` and `~/.codex/AGENTS.md`.
+- General machine-wide instructions (`~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`)
+  live in `~/dev/my-context/init/AGENTS_LOCAL.md` since 2026-10-16, not here.
 
-Do not assume an unqualified `AGENTS.md` or `CLAUDE.md` request targets the
-deployment payload merely because `files/home_AGENTS.md` exists. Infer the
-scope from the request, and ask when it remains ambiguous.
+Infer from the request whether an unqualified `AGENTS.md` or `CLAUDE.md`
+request means this repository's `AGENTS.md` or the machine-wide rules in
+`my-context`, and ask when it remains ambiguous.
 
 ## Deferred work
 

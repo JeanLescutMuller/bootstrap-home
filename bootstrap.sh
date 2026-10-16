@@ -89,7 +89,7 @@ _deploy_dotfile() {
 }
 
 # Own binaries: real file under ~/opt/bootstrap-home/bin/, symlinked from
-# ~/.local/bin/ (per files/home_AGENTS.md's rule that ~/.local/bin holds only
+# ~/.local/bin/ (per the machine-wide rules' rule (my-context/init/AGENTS_LOCAL.md) that ~/.local/bin holds only
 # symlinks into ~/opt/<project>/, never real files - same pattern as
 # agent-session-manager's asm or notify's own binary). Shape
 # mirrors DOTFILES: source name in files/, bin name on PATH.
