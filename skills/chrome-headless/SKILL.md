@@ -1,6 +1,6 @@
 ---
 name: chrome-headless
-description: Chrome on this Mac without disturbing the user - headless by default, a visible window only to show the user something. Which way to drive Chrome (a headless Chrome from a script, or Claude in Chrome in the user's visible windows), the launch snippet, how to log a headless Chrome in to a site once, and what was tested. Use before any browser work, any Playwright/CDP script, any test that starts Chrome, and before opening a Chrome window or tab.
+description: Chrome on this Mac without disturbing the user - headless by default, a visible window only to show the user something; with Claude in Chrome, track every tab and window you open, close them all at the end and check they are closed. Which way to drive Chrome (a headless Chrome from a script, or Claude in Chrome in the user's visible windows), the launch snippet, how to log a headless Chrome in to a site once, and what was tested. Use before any browser work, any Claude in Chrome tool, any Playwright/CDP script, any test that starts Chrome, and before opening a Chrome window or tab.
 ---
 
 # Chrome without disturbing the user: headless by default
@@ -27,6 +27,21 @@ need a browser
 | a test that starts Chrome visibly "just to see" | same; test headless, look at a screenshot file |
 | Claude in Chrome to read or scrape pages the user does not need to see | its tabs live in the user's visible windows |
 | driving the user's normal profiles from a script | Chrome ≥ 136 ignores `--remote-debugging-port` on its default data folder (all usual profiles): only an own data folder works |
+
+## Claude in Chrome: track every tab and window, close them, check they are closed
+
+The user, 2026-10-16: "every agent should keep track of which windows and tabs it opens and always close them at the end, making sure they're closed" (they had to close two windows an agent opened with `open -na … --profile-directory=…` and never closed).
+
+| Step | Do |
+|---|---|
+| Before | `select_browser` by deviceId (CLAUDE.md table), then `tabs_context_mcp`; if the profile is **not connected**, ask the user to open that Chrome profile: **never open a window from the shell** (`open -a/-na "Google Chrome"`): Claude in Chrome cannot see or close it |
+| Open | only with `tabs_create_mcp` (or `tabs_context_mcp createIfEmpty`, which opens a new window holding your tab group): every tab you open is in your group, and you note its id |
+| A tab you did not open | never close, reuse or navigate it, unless the user asked |
+| End of the work (done, failed or nothing found) | `tabs_close_mcp` on **every** tab id of your group; closing the last one removes the group and its window |
+| Check | call `tabs_context_mcp` (without `createIfEmpty`) for that browser: it must report no tab group. Say in your answer "tabs closed (checked)" |
+| A headless Chrome you started | `terminate()` it, then check no process holds its data folder: `pgrep -f "user-data-dir=<folder>"` prints nothing |
+| Keeping a tab open | only while the user must act in it; name the tab and what they must do; close it as soon as they say they are done |
+| Several browsers in one session | the check above for each browser you selected |
 
 ## The launch (Python, Playwright attached to a Chrome we start)
 
