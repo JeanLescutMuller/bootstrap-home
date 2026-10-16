@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """What every Claude / Codex session loads at startup vs only on use, in tokens and in % of each context window.
 
-Run by hand:  python3 ~/dev/bootstrap-home/tools/context_inventory.py [--descriptions]
+Run by hand:  python3 ~/dev/my-setup/tools/context_inventory.py [--descriptions]
 Measures files only (instructions, memory, skills). MCP servers and Claude Code's built-in skills are not files here:
 they are listed at the end as a reminder, measure them from a session's own context if needed.
 """

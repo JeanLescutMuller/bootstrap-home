@@ -5,7 +5,7 @@ description: Google Workspace from the shell with Google's `gws` CLI - Gmail, Ca
 
 # Google Workspace with `gws`
 
-One CLI for every Google service, already logged in on this Mac. Merged from the skills `gws generate-skills` (v0.22.5) writes (`gws-shared` + one per service): regenerating would split them again, so merge new output back into this file. Anthropic's skill of the same name (claude.ai web, through its Google connector) is hidden in Claude Code by `skillOverrides` (bootstrap-home): this one replaces it here.
+One CLI for every Google service, already logged in on this Mac. Merged from the skills `gws generate-skills` (v0.22.5) writes (`gws-shared` + one per service): regenerating would split them again, so merge new output back into this file. Anthropic's skill of the same name (claude.ai web, through its Google connector) is hidden in Claude Code by `skillOverrides` (my-setup): this one replaces it here.
 
 ## Auth and syntax
 

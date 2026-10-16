@@ -28,4 +28,4 @@ def machine_name() -> str:
     return name
 ```
 
-A display (status line, colour) replaces the error branch with `m='?'`. The name is fixed at provisioning: `bootstrap-home` checks the Mac's `HostName`, `bootstrap-vm` sets `/etc/hostname`. A new name for an existing machine = a migration of every store keyed by it (job-runner status/logs/dashboard conf, agent-usage-tracker `central/<machine>/` and `requests.machine`).
+A display (status line, colour) replaces the error branch with `m='?'`. The name is fixed at provisioning: `my-setup` checks the Mac's `HostName`, `bootstrap-vm` sets `/etc/hostname`. A new name for an existing machine = a migration of every store keyed by it (job-runner status/logs/dashboard conf, agent-usage-tracker `central/<machine>/` and `requests.machine`).

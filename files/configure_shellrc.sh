@@ -1,5 +1,5 @@
 #!/bin/bash
-# configure_shellrc.sh - generates the bootstrap-home managed block content
+# configure_shellrc.sh - generates the my-setup managed block content
 # for one shell. Organized by topic (PATH, ls/ll, history, prompt), not by
 # shell - branches internally only where bash/zsh syntax genuinely differs.
 # Usage: configure_shellrc.sh zsh|bash   (output -> the managed block body)

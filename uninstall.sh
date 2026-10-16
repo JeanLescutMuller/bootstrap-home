@@ -1,7 +1,7 @@
 #!/bin/bash
 # Removes what modules/agent_links.sh deploys: the skill links
 # in ~/.claude/skills and ~/.agents/skills
-# (only links that point into ~/opt/bootstrap-home), then the read-only copies
+# (only links that point into ~/opt/my-setup), then the read-only copies
 # they point to. Dotfiles, the shell rc block, git config and the tools are left alone.
 #
 # Usage: bash uninstall.sh
@@ -10,7 +10,7 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/utils.sh"
 
-OPT_DIR="$HOME/opt/bootstrap-home"
+OPT_DIR="$HOME/opt/my-setup"
 
 _remove_link() {
     local link="$1" target="$2"

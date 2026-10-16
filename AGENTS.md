@@ -1,4 +1,4 @@
-# bootstrap-home development instructions
+# my-setup development instructions
 
 These instructions govern development of this repository.
 
@@ -18,7 +18,7 @@ request means this repository's `AGENTS.md` or the machine-wide rules in
 
 ## Deferred work
 
-Postponed improvements are Todoist tasks with `Repo: bootstrap-home` (skill `task-management`); [`viewer.html`](viewer.html) shows them.
+Postponed improvements are Todoist tasks with `Repo: my-setup` (skill `task-management`); [`viewer.html`](viewer.html) shows them.
 
 ## Statusline and Codex patch builds
 
@@ -26,7 +26,7 @@ The shared Claude/Codex statusline renderer, its lazy cache library, and the
 Codex status-line-command binary patch all moved to the independent
 [`agent-statusline`](https://github.com/JeanLescutMuller/agent-statusline)
 project. `modules/tools.sh` clones and deploys it the same way it deploys
-`agent-session-manager` and `notify`; bootstrap-home itself no longer owns
+`agent-session-manager` and `notify`; my-setup itself no longer owns
 any of that logic or touches `~/.codex/config.toml`.
 
 That project's own build-script convention still applies wherever it's

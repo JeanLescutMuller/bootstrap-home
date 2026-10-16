@@ -1,13 +1,13 @@
 #!/bin/bash
 # Skills, deployed like everything else: a read-only copy
-# under ~/opt/bootstrap-home/, linked from where the agents look. An edit through
-# a link fails (read-only): edit the source in ~/dev/bootstrap-home, then
+# under ~/opt/my-setup/, linked from where the agents look. An edit through
+# a link fails (read-only): edit the source in ~/dev/my-setup, then
 # re-run `INSTALL=true bash bootstrap.sh agent_links`. uninstall.sh undoes it.
 # The machine-wide rules (~/.claude/CLAUDE.md, ~/.codex/AGENTS.md) are my-context's since 2026-10-16.
-#   skills/<name>/       -> ~/opt/bootstrap-home/skills/<name>/ <- ~/.claude/skills/<name>, ~/.agents/skills/<name>
+#   skills/<name>/       -> ~/opt/my-setup/skills/<name>/ <- ~/.claude/skills/<name>, ~/.agents/skills/<name>
 step "agent links"
 
-OPT_DIR="$HOME/opt/bootstrap-home"
+OPT_DIR="$HOME/opt/my-setup"
 OPT_SKILLS="$OPT_DIR/skills"
 SKILL_HOMES=("$HOME/.claude/skills" "$HOME/.agents/skills")
 
@@ -55,7 +55,7 @@ _deploy_link() {
     installed "$link -> $target"
 }
 
-# ~/opt/bootstrap-home/home_AGENTS.md was the deployed machine-wide rules file,
+# $OPT_DIR/home_AGENTS.md was the deployed machine-wide rules file,
 # moved to my-context on 2026-10-16. Removed once no link points to it.
 _old="$OPT_DIR/home_AGENTS.md"
 if [ -e "$_old" ]; then
