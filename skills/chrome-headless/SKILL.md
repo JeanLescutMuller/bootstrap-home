@@ -42,6 +42,7 @@ The user, 2026-10-16: "every agent should keep track of which windows and tabs i
 | A headless Chrome you started | `terminate()` it, then check no process holds its data folder: `pgrep -f "user-data-dir=<folder>"` prints nothing |
 | Keeping a tab open | only while the user must act in it; name the tab and what they must do; close it as soon as they say they are done |
 | Several browsers in one session | the check above for each browser you selected |
+| A script or scheduled job that must load a profile for Claude in Chrome (the extension runs only in a loaded profile) | only when a run needs it; note the window ids before and after (AppleScript `get id of every window`), close the new window's tabs that are not the user's at process exit, check, and log one `chrome: opened…` / `closed… (checked)` line. Model: `~/dev/job-applications/common/chrome.py` (17 Oct 2026: it used to leave one window open every night) |
 
 ## The launch (Python, Playwright attached to a Chrome we start)
 
@@ -85,3 +86,5 @@ Logging a tool's Chrome in once: open the same data folder **without** `--headle
 | minimized through CDP right after start | flashes, then in the Dock | ✅ | ❌ times out | false |
 
 A login made in a visible window works in the same data folder headless (Facebook, 2026-10-16). Sites with bot checks (Cloudflare "Just a moment…") may still block a headless Chrome: then show the user, or use Claude in Chrome on a visible tab with their OK.
+
+Windows or tabs left open anyway: skill `chrome-leftovers` finds who opened them and closes them.
