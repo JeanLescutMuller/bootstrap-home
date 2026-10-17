@@ -2,7 +2,8 @@
 # Removes what modules/agent_links.sh deploys: the skill links
 # in ~/.claude/skills and ~/.agents/skills
 # (only links that point into ~/opt/my-setup), then the read-only copies
-# they point to. Dotfiles, the shell rc block, git config and the tools are left alone.
+# they point to; and the remote control LaunchAgent (modules/remote_control.sh).
+# Dotfiles, the shell rc block, git config and the tools are left alone.
 #
 # Usage: bash uninstall.sh
 set -uo pipefail
@@ -33,3 +34,13 @@ for copy in "$OPT_DIR/home_AGENTS.md" "$OPT_DIR/skills"; do
         installed "removed $copy"
     fi
 done
+
+step "remote control service"
+_rc_label="com.jeanlescut.my-setup"
+if [ "$(uname)" = Darwin ]; then
+    launchctl bootout "gui/$(id -u)/$_rc_label" 2>/dev/null && installed "stopped $_rc_label"
+    _remove_link "$HOME/Library/LaunchAgents/$_rc_label.plist" "$OPT_DIR/$_rc_label.plist"
+    for f in "$OPT_DIR/$_rc_label.plist" "$OPT_DIR/remote_control.sh"; do
+        [ -f "$f" ] && rm "$f" && installed "removed $f"
+    done
+fi
