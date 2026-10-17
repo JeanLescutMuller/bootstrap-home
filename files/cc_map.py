@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """cc-map: draw every tmux session, its panes, and the Claude session running in each.
 
-Reads `tmux list-panes -a`, ~/.claude/sessions/<pid>.json (one per live Claude process), agent-notify's
-state, and the rc-links code in ~/.config/my-setup/rc-links.env. Writes nothing.
+Reads `tmux list-panes -a`, ~/.claude/sessions/<pid>.json (one per live Claude process) and agent-notify's
+state. Writes nothing.
 Usage: cc-map [md|tree|table|boxes]
-  md (default): Markdown for the phone; a session with Remote Control off is a link to rc-links
-  (rc_links.py), which turns it on.
+  md (default): Markdown for the phone, 📱 on sessions with Remote Control on (cc-rc turns it on).
 """
 import getpass, glob, json, os, subprocess, sys, time
 
@@ -132,9 +131,8 @@ def boxes(groups, others):
         print("╰" + "─" * (w + 1) + "╯")
 
 
-def md(groups, others, width=26, base=None):
-    """Markdown, no code block: a bold line per tmux session, one bullet per Claude, notify's icon first.
-    With base (rc_links.py's http://<ip>:<port>/<token>), a session with Remote Control off is a link that turns it on."""
+def md(groups, others, width=26):
+    """Markdown, no code block: a bold line per tmux session, one bullet per Claude, notify's icon first."""
     cut = lambda n: n if len(n) <= width else n[: width - 1] + "…"
     for s, ps in groups.items():
         rows = [(p, notify_icon(p["pane_pid"]), c) for p, c in ps if c]
@@ -145,8 +143,6 @@ def md(groups, others, width=26, base=None):
             name = cut(c.get('name') or '(no name)')
             if c.get("bridgeSessionId"):
                 name = f"{name} 📱"
-            elif base:
-                name = f"[{name}]({base}/rc/{p['pane_id'][1:]})"
             print(f"- {icon} {name} · {label(c)[4]}")
         print()
     if others:
@@ -155,21 +151,5 @@ def md(groups, others, width=26, base=None):
             print(f"- {NO_ICON} {cut(c.get('name') or '(no name)')} · {label(c)[4]}")
 
 
-def rc_links_base():
-    """http://<this Mac's Wi-Fi address>:<port>/<code>, or None without the code file or an address."""
-    try:
-        env = dict(l.strip().split("=", 1) for l in open(os.path.expanduser("~/.config/my-setup/rc-links.env")) if "=" in l)
-    except OSError:
-        return None
-    try:
-        ip = subprocess.run(["ipconfig", "getifaddr", "en0"], capture_output=True, text=True).stdout.strip()
-    except OSError:  # not macOS
-        return None
-    return f"http://{ip}:{env.get('RC_LINKS_PORT', '8765')}/{env['RC_LINKS_TOKEN']}" if ip and "RC_LINKS_TOKEN" in env else None
-
-
 style = sys.argv[1] if len(sys.argv) > 1 else "md"
-if style == "md":
-    md(*build(), base=rc_links_base())
-else:
-    {"tree": tree, "table": table, "boxes": boxes}[style](*build())
+{"tree": tree, "table": table, "boxes": boxes, "md": md}[style](*build())

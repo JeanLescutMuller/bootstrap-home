@@ -1,20 +1,17 @@
 #!/bin/bash
-# Remote Control services (macOS only), two LaunchAgents (KeepAlive):
+# Remote Control service (macOS only), a LaunchAgent (KeepAlive):
 #
 #   com.jeanlescut.my-setup.remote-control  ~/opt/my-setup/remote_control.sh (from files/)
 #       keeps `claude remote-control` running, so a Claude session on this Mac
 #       can be started from the phone at any time. The Mac must be awake.
-#   com.jeanlescut.my-setup.rc-links        ~/opt/my-setup/rc_links.py (from files/)
-#       the links in `cc-map`'s output: a tap on the phone types /rc into that
-#       session's tmux pane (home Wi-Fi only). Secret code: ~/.config/my-setup/rc-links.env.
 #
-# Real plists in ~/opt/my-setup/, linked from ~/Library/LaunchAgents/.
-# Logs: ~/opt/my-setup/logs/remote-control.log, rc-links.log.
-# Each is restarted only when its script or plist changed: restarting
-# remote-control ends every session open from the phone (including the one
-# running this, if any).
+# Real plist in ~/opt/my-setup/, linked from ~/Library/LaunchAgents/.
+# Log: ~/opt/my-setup/logs/remote-control.log.
+# Restarted only when its script or plist changed: a restart ends every
+# session open from the phone (including the one running this, if any).
+# Turning /rc on in a running session is cc-rc's job (files/cc_rc.py), run by an agent.
 
-step "remote control services"
+step "remote control service"
 
 # $1 label, $2 source in files/, $3 interpreter
 _rc_service() {
@@ -62,6 +59,15 @@ else
         [ -f "$HOME/opt/my-setup/$_rc_old.plist" ] && rm "$HOME/opt/my-setup/$_rc_old.plist"
         installed "removed old LaunchAgent $_rc_old"
     fi
+    # Migration: the rc-links link server (2026-10-17, same day) gave way to cc-rc, run by an agent.
+    _rc_old="com.jeanlescut.my-setup.rc-links"
+    if [ "$INSTALL" = "true" ] && { [ -L "$HOME/Library/LaunchAgents/$_rc_old.plist" ] || [ -f "$HOME/opt/my-setup/$_rc_old.plist" ]; }; then
+        launchctl bootout "gui/$(id -u)/$_rc_old" 2>/dev/null || true
+        [ -L "$HOME/Library/LaunchAgents/$_rc_old.plist" ] && rm "$HOME/Library/LaunchAgents/$_rc_old.plist"
+        [ -f "$HOME/opt/my-setup/$_rc_old.plist" ] && rm "$HOME/opt/my-setup/$_rc_old.plist"
+        [ -f "$HOME/opt/my-setup/rc_links.py" ] && rm "$HOME/opt/my-setup/rc_links.py"
+        [ -f "$HOME/.config/my-setup/rc-links.env" ] && rm "$HOME/.config/my-setup/rc-links.env"
+        installed "removed old LaunchAgent $_rc_old, its script and its secret code"
+    fi
     _rc_service com.jeanlescut.my-setup.remote-control remote_control.sh /bin/bash
-    _rc_service com.jeanlescut.my-setup.rc-links rc_links.py /usr/bin/python3
 fi

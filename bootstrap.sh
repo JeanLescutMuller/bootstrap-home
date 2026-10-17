@@ -113,6 +113,7 @@ _deploy_dotfile() {
 OWN_BINS=(
     "get_host_color.sh:get_host_color"
     "cc_map.py:cc-map"
+    "cc_rc.py:cc-rc"
 )
 
 _deploy_own_bin() {
