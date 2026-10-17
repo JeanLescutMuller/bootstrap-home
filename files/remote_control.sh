@@ -1,5 +1,5 @@
 #!/bin/bash
-# Run by the LaunchAgent com.jeanlescut.my-setup (KeepAlive, modules/remote_control.sh):
+# Run by the LaunchAgent com.jeanlescut.my-setup.remote-control (KeepAlive, modules/remote_control.sh):
 # keeps `claude remote-control` running in ~/dev, so a session can be started
 # from the phone (Claude app or claude.ai/code) at any time.
 # Writes ~/opt/my-setup/logs/remote-control.log: one line per start and exit, plus stderr.

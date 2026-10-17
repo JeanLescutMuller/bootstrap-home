@@ -2,7 +2,7 @@
 # Removes what modules/agent_links.sh deploys: the skill links
 # in ~/.claude/skills and ~/.agents/skills
 # (only links that point into ~/opt/my-setup), then the read-only copies
-# they point to; and the remote control LaunchAgent (modules/remote_control.sh).
+# they point to; the remote control LaunchAgents (modules/remote_control.sh) and cc-map.
 # Dotfiles, the shell rc block, git config and the tools are left alone.
 #
 # Usage: bash uninstall.sh
@@ -35,12 +35,15 @@ for copy in "$OPT_DIR/home_AGENTS.md" "$OPT_DIR/skills"; do
     fi
 done
 
-step "remote control service"
-_rc_label="com.jeanlescut.my-setup"
+step "remote control services"
 if [ "$(uname)" = Darwin ]; then
-    launchctl bootout "gui/$(id -u)/$_rc_label" 2>/dev/null && installed "stopped $_rc_label"
-    _remove_link "$HOME/Library/LaunchAgents/$_rc_label.plist" "$OPT_DIR/$_rc_label.plist"
-    for f in "$OPT_DIR/$_rc_label.plist" "$OPT_DIR/remote_control.sh"; do
+    for _rc_label in com.jeanlescut.my-setup.remote-control com.jeanlescut.my-setup.rc-links com.jeanlescut.my-setup; do
+        launchctl bootout "gui/$(id -u)/$_rc_label" 2>/dev/null && installed "stopped $_rc_label"
+        _remove_link "$HOME/Library/LaunchAgents/$_rc_label.plist" "$OPT_DIR/$_rc_label.plist"
+        [ -f "$OPT_DIR/$_rc_label.plist" ] && rm "$OPT_DIR/$_rc_label.plist" && installed "removed $OPT_DIR/$_rc_label.plist"
+    done
+    for f in "$OPT_DIR/remote_control.sh" "$OPT_DIR/rc_links.py"; do
         [ -f "$f" ] && rm "$f" && installed "removed $f"
     done
+    _remove_link "$HOME/.local/bin/cc-map" "$OPT_DIR/bin/cc-map"
 fi
