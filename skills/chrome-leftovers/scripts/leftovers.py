@@ -102,8 +102,10 @@ script = ('tell application "Google Chrome"\nset out to ""\nrepeat with w in win
           'set out to out & (id of w) & (character id 9) & (id of t) & (character id 9) & (URL of t) & (character id 9) & (title of t) & linefeed\n'
           'end repeat\nend repeat\nreturn out\nend tell')
 if n_visible:
-    out = subprocess.run(['osascript', '-e', script], capture_output=True, text=True, timeout=30).stdout
-    for line in out.splitlines():
+    r = subprocess.run(['osascript', '-e', script], capture_output=True, text=True, timeout=30)
+    if r.returncode:  # 17 Oct 2026: one run saw no window at all (a tab changing mid-listing): say so, don't show "none"
+        print(f'\n**AppleScript failed, the window list is incomplete: run again.** {r.stderr.strip()[:200]}')
+    for line in r.stdout.splitlines():
         if not line.strip():
             continue
         wid, tid, url, title = (line.split('\t') + ['', '', '', ''])[:4]
