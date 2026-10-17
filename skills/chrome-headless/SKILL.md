@@ -42,7 +42,7 @@ The user, 2026-10-16: "every agent should keep track of which windows and tabs i
 | A headless Chrome you started | `terminate()` it, then check no process holds its data folder: `pgrep -f "user-data-dir=<folder>"` prints nothing |
 | Keeping a tab open | only while the user must act in it; name the tab and what they must do; close it as soon as they say they are done |
 | Several browsers in one session | the check above for each browser you selected |
-| A script or scheduled job that must load a profile for Claude in Chrome (the extension runs only in a loaded profile) | only when a run needs it; note the window ids before and after (AppleScript `get id of every window`), close the new window's tabs that are not the user's at process exit, check, and log one `chrome: opened…` / `closed… (checked)` line. Model: `~/dev/job-applications/common/chrome.py` (17 Oct 2026: it used to leave one window open every night) |
+| A script or scheduled job that must load a profile for Claude in Chrome (the extension runs only in a loaded profile) | only when a run needs it; note the window ids before and after (AppleScript `get id of every window`), close that window when the run is done (process exit; kept only while the user must act in it), check, and log one `chrome: opened…` / `closed… (checked)` line. Model: `~/dev/job-applications/common/chrome.py` (17 Oct 2026: it used to leave one window open every night) |
 
 ## The launch (Python, Playwright attached to a Chrome we start)
 
