@@ -248,7 +248,7 @@ if [ "$(uname)" = Darwin ]; then
 else
     _hn=$(cat /etc/hostname 2>/dev/null) || _hn=
     if [[ ${_hn%%.*} =~ ^[A-Za-z0-9-]+$ ]]; then ok "/etc/hostname ${_hn%%.*}"
-    else fail "/etc/hostname empty: sudo hostnamectl set-hostname <name> (bootstrap-vm owns it)"; fi
+    else fail "/etc/hostname empty: sudo hostnamectl set-hostname <name> (bootstrap-vm on GitHub owns it)"; fi
 fi
 
 step "own binaries"

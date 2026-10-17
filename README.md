@@ -45,4 +45,4 @@ INSTALL=true bash bootstrap.sh gitconfig   # dotfiles (always checked) + one mod
 
 ## Explicitly not here
 
-No Meta-specific configuration (corporate proxy, `fbsource` paths, internal Claude plugins) and no root-level services — see `bootstrap-vm` for anything that needs to own the whole machine.
+No Meta-specific configuration (corporate proxy, `fbsource` paths, internal Claude plugins) and no root-level services — see [`bootstrap-vm`](https://github.com/JeanLescutMuller/bootstrap-vm) (GitHub only) for anything that needs to own the whole machine.
