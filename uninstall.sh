@@ -37,12 +37,10 @@ done
 
 step "remote control service"
 if [ "$(uname)" = Darwin ]; then
-    for _rc_label in com.jeanlescut.my-setup.remote-control com.jeanlescut.my-setup.rc-links com.jeanlescut.my-setup; do
-        launchctl bootout "gui/$(id -u)/$_rc_label" 2>/dev/null && installed "stopped $_rc_label"
-        _remove_link "$HOME/Library/LaunchAgents/$_rc_label.plist" "$OPT_DIR/$_rc_label.plist"
-        [ -f "$OPT_DIR/$_rc_label.plist" ] && rm "$OPT_DIR/$_rc_label.plist" && installed "removed $OPT_DIR/$_rc_label.plist"
-    done
-    for f in "$OPT_DIR/remote_control.sh" "$OPT_DIR/rc_links.py"; do
+    _rc_label="com.jeanlescut.my-setup.remote-control"
+    launchctl bootout "gui/$(id -u)/$_rc_label" 2>/dev/null && installed "stopped $_rc_label"
+    _remove_link "$HOME/Library/LaunchAgents/$_rc_label.plist" "$OPT_DIR/$_rc_label.plist"
+    for f in "$OPT_DIR/$_rc_label.plist" "$OPT_DIR/remote_control.sh"; do
         [ -f "$f" ] && rm "$f" && installed "removed $f"
     done
     _remove_link "$HOME/.local/bin/cc-map" "$OPT_DIR/bin/cc-map"

@@ -3,7 +3,7 @@
 
 Reads `tmux list-panes -a`, ~/.claude/sessions/<pid>.json (one per live Claude process) and agent-notify's
 state. Writes nothing.
-Usage: cc-map [md|tree|table|boxes]
+Usage: cc-map [md|tree]
   md (default): Markdown for the phone, 📱 on sessions with Remote Control on (cc-rc turns it on).
 """
 import getpass, glob, json, os, subprocess, sys, time
@@ -98,39 +98,6 @@ def tree(groups, others):
     print(f"\n{BUSY} busy  {IDLE} idle  · no Claude   (age = since last status change)")
 
 
-def table(groups, others):
-    rows = [(s, p["pane_id"], *label(c)) for s, ps in groups.items() for p, c in ps if c]
-    rows += [("—", other_where(c), *label(c)) for c in others]
-    hdr = ("tmux session", "pane", "", "Claude session", "folder", "id", "age")
-    w = [max(len(str(r[i])) for r in rows + [hdr]) for i in range(len(hdr))]
-    line = lambda l, m, r: l + m.join("─" * (x + 2) for x in w) + r
-    fmt = lambda r: "│" + "│".join(f" {str(v):<{w[i]}} " for i, v in enumerate(r)) + "│"
-    print(line("┌", "┬", "┐")); print(fmt(hdr)); print(line("├", "┼", "┤"))
-    prev = None
-    for r in rows:
-        if prev and r[0] != prev:
-            print(line("├", "┼", "┤"))
-        print(fmt(r if r[0] != prev else ("",) + r[1:]))
-        prev = r[0]
-    print(line("└", "┴", "┘"))
-
-
-def boxes(groups, others):
-    for s, ps in list(groups.items()) + ([("not in tmux", [(None, c) for c in others])] if others else []):
-        lines = []
-        for p, c in ps:
-            if c:
-                st, name, where, sid, age = label(c)
-                lines.append(f"{st} {name[:28]:<28} {age:>3}")
-            else:
-                lines.append(f"· {p['cmd']}")
-        w = max(len(l) for l in lines + [s]) + 2
-        print(f"╭─ {s} " + "─" * (w - len(s) - 2) + "╮")
-        for l in lines:
-            print(f"│ {l:<{w}}│")
-        print("╰" + "─" * (w + 1) + "╯")
-
-
 def md(groups, others, width=26):
     """Markdown, no code block: a bold line per tmux session, one bullet per Claude, notify's icon first."""
     cut = lambda n: n if len(n) <= width else n[: width - 1] + "…"
@@ -152,4 +119,6 @@ def md(groups, others, width=26):
 
 
 style = sys.argv[1] if len(sys.argv) > 1 else "md"
-{"tree": tree, "table": table, "boxes": boxes, "md": md}[style](*build())
+if style not in ("md", "tree"):
+    sys.exit(__doc__)
+{"tree": tree, "md": md}[style](*build())
