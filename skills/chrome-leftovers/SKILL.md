@@ -5,7 +5,7 @@ description: Find the Chrome windows, tabs and processes that agents or schedule
 
 # Chrome leftovers: who opened what, and close it
 
-The user runs this by hand when they find windows they did not open (17 Oct 2026: a "Claude - general" window opened by auto-apply at 02:47 and a "Claude - Facebook" window an agent opened from the shell the day before; neither waited for anything). A scheduled job comes only if it keeps happening. The rules agents must follow are in skill `chrome-headless`; this skill finds what slipped through.
+The user runs this by hand when they find windows they did not open (17 Oct 2026: a "Claude - general" window opened by auto-job-apply at 02:47 and a "Claude - Facebook" window an agent opened from the shell the day before; neither waited for anything). A scheduled job comes only if it keeps happening. The rules agents must follow are in skill `chrome-headless`; this skill finds what slipped through.
 
 ## 1. Report (read-only)
 
@@ -20,7 +20,7 @@ python3 -I ~/.claude/skills/chrome-leftovers/scripts/leftovers.py --hours 24 > /
 | Sessions owning an open tab | the session's folder, last activity, its last words | a last line ending in "?" may mean it waits for the user |
 | Profiles with windows in the period | when each profile's current windows were opened | the `Sessions/Session_<time>` file name (Chrome time: µs since 1601) |
 | Chrome started from the shell | visible launches (`open -na`, `--profile-directory`, the Chrome binary without `--headless`) found in transcripts | some rows only mention Chrome in an edit: read the command |
-| Scheduled jobs' `chrome:` lines | what jobs logged about their windows (auto-apply: `chrome: opened…` / `closed… (checked)`) | `~/opt/job-runner/logs/*/*/*.log` |
+| Scheduled jobs' `chrome:` lines | what jobs logged about their windows (auto-job-apply: `chrome: opened…` / `closed… (checked)`) | `~/opt/job-runner/logs/*/*/*.log` |
 
 A window with no agent seen: match its profile's "windows opened" time with a shell launch or a job log at that minute; nothing matches → the user's own, never touch it.
 
